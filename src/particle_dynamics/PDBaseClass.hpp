@@ -42,12 +42,31 @@ public:
 
 protected:
 
+   int N;
+   int rank;
    int current_step;
+   std::vector <double> r,v,f;
+   std::vector <double> rad;
+	std::vector <double> box;
+   std::vector <double> mass;
 
 private:
 
-  double dt;
-  double dtover2;
+   int ncell, nncells;
+	int ncellx,ncelly,ncellz;
+   double dt;
+   double dtover2;
+   double rcut;
+   double rcut2;
+   double cellWidth;
+	double cellWidthx,cellWidthy,cellWidthz;
+   std::vector <int> head,list;
+	std::vector <int> cellmap;
+   void velocityHalfKick();
+   void updatePositions();
+   void applyBoundaryConditions();
+   void pairwiseForces();
+   void writeVTKFile(string,int);
 
 };
 
