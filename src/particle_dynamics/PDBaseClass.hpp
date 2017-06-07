@@ -4,6 +4,7 @@
 
 # include "../utils/CommonParams.h"
 # include "../utils/GetPot"
+# include "initial_conditions/PInitCond_Interface.hpp"
 using namespace std;
 
 // ---------------------------------------------------------------------
@@ -27,7 +28,6 @@ class PDBaseClass {
         // pure virtual functions:
         // -------------------------------------------------------------------
 
-        virtual void initParticles() = 0;
         virtual void fijFunc(int,int) = 0;
 
         // -------------------------------------------------------------------
@@ -39,6 +39,7 @@ class PDBaseClass {
         void updateParticles();
         void outputParticles();
         void setTimeStep(int step) {current_step = step;}
+        void initParticles();
 
     protected:
 
@@ -67,6 +68,7 @@ class PDBaseClass {
         void applyBoundaryConditions();
         void pairwiseForces();
         void writeVTKFile(string,int);
+        PInitCond* icObj;
 
 };
 
