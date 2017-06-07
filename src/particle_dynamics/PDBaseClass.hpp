@@ -63,13 +63,15 @@ class PDBaseClass {
         double cellWidthx,cellWidthy,cellWidthz;
         std::vector <int> head,list;
         std::vector <int> cellmap;
+        PInitCond* icObj;
         void velocityHalfKick();
         void updatePositions();
         void applyBoundaryConditions();
         void pairwiseForces();
         void writeVTKFile(string,int);
-        PInitCond* icObj;
-
+        void setupParticleCells();
+        int cellIndex(int,int,int);  
+  
 };
 
 # endif  // PDBASECLASS_H
