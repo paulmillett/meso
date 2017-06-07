@@ -19,7 +19,7 @@ public:
    void fijFunc(int,int);
 
    // fijFunc params
-   double rij[3]
+   double rij[3];
    double rijUnit[3];
    double rijMag;
    double s2s;
