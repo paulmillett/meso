@@ -60,6 +60,8 @@ PDBaseClass::PDBaseClass(const CommonParams& p, const GetPot& input_params)
    rank = p.rank;
    dtover2 = dt/2.0;
    current_step = 0;
+   if (p.nz == 1) flag2D = true;
+   if (p.nz  > 1) flag2D = false;
 
    //	---------------------------------------
    //	Get other parameters from 'GetPot':
@@ -82,6 +84,12 @@ PDBaseClass::PDBaseClass(const CommonParams& p, const GetPot& input_params)
          f.push_back(0.0);
       }
    }
+
+   //	---------------------------------------
+   // initialize linked-list cells:
+   //	---------------------------------------
+
+   setupParticleCells();
 
 }
 
@@ -282,4 +290,92 @@ void PDBaseClass::writeVTKFile(string tagname, int tagnum)
    // -----------------------------------
 
 	outfile.close();
+}
+
+
+
+// -------------------------------------------------------------------------
+// Setup the linked-list cell structure.
+// -------------------------------------------------------------------------
+
+void PDBaseClass::setupParticleCells()
+{
+
+   //	---------------------------------------
+   // First, how many cells should exist:
+   //	---------------------------------------
+
+   cellWidth = rcut;
+   ncellx = int(floor(box[0]/cellWidth));
+   ncelly = int(floor(box[1]/cellWidth));
+   ncellz = int(floor(box[2]/cellWidth));
+   if (flag2D) ncellz = 1;
+   ncell = ncellx*ncelly*ncellz;
+   cellWidthx = box[0]/double(ncellx);
+   cellWidthy = box[1]/double(ncelly);
+   cellWidthz = box[2]/double(ncellz);
+
+   //	---------------------------------------
+   // Second, establish vector dimensions:
+   //	---------------------------------------
+
+   for (int i=0; i<ncell; i++) {
+      head.push_back(-1);
+      if (flag2D)  nncells = 4;
+      if (!flag2D) nncells = 13;
+      for (int i=0; i<nncells; i++) {
+         cellmap.push_back(0);
+      }
+   }
+
+   for (int i=0; i<N; i++) {
+      list.push_back(0);
+   }
+
+   //	---------------------------------------
+   // Last, create the cell nabor map:
+   //	---------------------------------------
+
+   for (int i=0; i<ncellx; i++) {
+      for (int j=0; j<ncelly; j++) {
+         for (int k=0; k<ncellz; k++) {
+
+            int imap = cellIndex(i,j,k)*nncells;
+            cellmap[imap+0]  = cellIndex(i+1, j , k );
+            cellmap[imap+1]  = cellIndex(i+1,j+1, k );
+            cellmap[imap+2]  = cellIndex( i ,j+1, k );
+            cellmap[imap+3]  = cellIndex(i-1,j+1, k );
+            if (nncells == 4) continue; // only do below if 3D cell structure
+            cellmap[imap+4]  = cellIndex(i+1, j ,k-1);
+            cellmap[imap+5]  = cellIndex(i+1,j+1,k-1);
+            cellmap[imap+6]  = cellIndex( i ,j+1,k-1);
+            cellmap[imap+7]  = cellIndex(i-1,j+1,k-1);
+            cellmap[imap+8]  = cellIndex(i+1, j ,k+1);
+            cellmap[imap+9]  = cellIndex(i+1,j+1,k+1);
+            cellmap[imap+10] = cellIndex( i ,j+1,k+1);
+            cellmap[imap+11] = cellIndex(i-1,j+1,k+1);
+            cellmap[imap+12] = cellIndex( i , j ,k+1);
+
+         }
+      }
+   }
+
+}
+
+
+
+// -------------------------------------------------------------------------
+// Function to return the linked-list cell index given the
+// x- y- z-coordinates of cell:
+// -------------------------------------------------------------------------
+
+int PDBaseClass::cellIndex(int i, int j, int k)
+{
+   if (i < 0) i += ncellx;
+   if (i >= ncellx) i -= ncellx;
+   if (j < 0) j += ncelly;
+   if (j >= ncelly) j -= ncelly;
+   if (k < 0) k += ncellz;
+   if (k >= ncellz) k -= ncellz;
+   return i*ncellz*ncelly + j*ncellz + k;
 }

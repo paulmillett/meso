@@ -54,6 +54,7 @@ private:
 
    int ncell, nncells;
 	int ncellx,ncelly,ncellz;
+   bool flag2D;
    double dt;
    double dtover2;
    double rcut;
@@ -67,6 +68,8 @@ private:
    void applyBoundaryConditions();
    void pairwiseForces();
    void writeVTKFile(string,int);
+   void setupParticleCells();
+   int cellIndex(int,int,int);
 
 };
 
