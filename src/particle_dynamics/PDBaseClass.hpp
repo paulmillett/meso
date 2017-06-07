@@ -4,6 +4,7 @@
 
 # include "../utils/CommonParams.h"
 # include "../utils/GetPot"
+# include "initial_conditions/PInitCond_Interface.hpp"
 using namespace std;
 
 // ---------------------------------------------------------------------
@@ -15,62 +16,62 @@ using namespace std;
 
 class PDBaseClass {
 
-public:
+    public:
 
-   // -------------------------------------------------------------------
-   // Factory method that creates objects of sub-classes:
-   // -------------------------------------------------------------------
+        // -------------------------------------------------------------------
+        // Factory method that creates objects of sub-classes:
+        // -------------------------------------------------------------------
 
-   static PDBaseClass* PDFactory(const CommonParams&, const GetPot&);
+        static PDBaseClass* PDFactory(const CommonParams&, const GetPot&);
 
-   // -------------------------------------------------------------------
-   // pure virtual functions:
-   // -------------------------------------------------------------------
+        // -------------------------------------------------------------------
+        // pure virtual functions:
+        // -------------------------------------------------------------------
 
-   virtual void initParticles() = 0;
-   virtual void fijFunc(int,int) = 0;
+        virtual void fijFunc(int,int) = 0;
 
-   // -------------------------------------------------------------------
-   // common functions:
-   // -------------------------------------------------------------------
+        // -------------------------------------------------------------------
+        // common functions:
+        // -------------------------------------------------------------------
 
-   PDBaseClass(const CommonParams&, const GetPot&);
- 	 ~PDBaseClass();
-   void updateParticles();
-   void outputParticles();
-   void setTimeStep(int step) {current_step = step;}
+        PDBaseClass(const CommonParams&, const GetPot&);
+        ~PDBaseClass();
+        void updateParticles();
+        void outputParticles();
+        void setTimeStep(int step) {current_step = step;}
+        void initParticles();
 
-protected:
+    protected:
 
-   int N;
-   int rank;
-   int current_step;
-   std::vector <double> r,v,f;
-   std::vector <double> rad;
-	std::vector <double> box;
-   std::vector <double> mass;
+        int N;
+        int rank;
+        int current_step;
+        std::vector <double> r,v,f;
+        std::vector <double> rad;
+        std::vector <double> box;
+        std::vector <double> mass;
 
-private:
+    private:
 
-   int ncell, nncells;
-	int ncellx,ncelly,ncellz;
-   bool flag2D;
-   double dt;
-   double dtover2;
-   double rcut;
-   double rcut2;
-   double cellWidth;
-	double cellWidthx,cellWidthy,cellWidthz;
-   std::vector <int> head,list;
-	std::vector <int> cellmap;
-   void velocityHalfKick();
-   void updatePositions();
-   void applyBoundaryConditions();
-   void pairwiseForces();
-   void writeVTKFile(string,int);
-   void setupParticleCells();
-   int cellIndex(int,int,int);
-
+        int ncell, nncells;
+        int ncellx,ncelly,ncellz;
+        double dt;
+        double dtover2;
+        double rcut;
+        double rcut2;
+        double cellWidth;
+        double cellWidthx,cellWidthy,cellWidthz;
+        std::vector <int> head,list;
+        std::vector <int> cellmap;
+        PInitCond* icObj;
+        void velocityHalfKick();
+        void updatePositions();
+        void applyBoundaryConditions();
+        void pairwiseForces();
+        void writeVTKFile(string,int);
+        void setupParticleCells();
+        int cellIndex(int,int,int);  
+  
 };
 
 # endif  // PDBASECLASS_H

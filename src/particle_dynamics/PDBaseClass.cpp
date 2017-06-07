@@ -20,20 +20,20 @@
 // -------------------------------------------------------------------------
 
 PDBaseClass* PDBaseClass::PDFactory(const CommonParams& p,
-                                    const GetPot& input_params)
+        const GetPot& input_params)
 {
 
-   // -----------------------------------
-   // identify the requested object:
-   // -----------------------------------
+    // -----------------------------------
+    // identify the requested object:
+    // -----------------------------------
 
-   string pd_type = input_params("PDApp/type","Hertz");
+    string pd_type = input_params("PDApp/type","Hertz");
 
-   // -----------------------------------
-   // return the requested object:
-   // -----------------------------------
+    // -----------------------------------
+    // return the requested object:
+    // -----------------------------------
 
-   if (pd_type == "Hertz") return new Hertz(p,input_params);
+    if (pd_type == "Hertz") return new Hertz(p,input_params);
 
 }
 
@@ -46,44 +46,57 @@ PDBaseClass* PDBaseClass::PDFactory(const CommonParams& p,
 PDBaseClass::PDBaseClass(const CommonParams& p, const GetPot& input_params)
 {
 
-   cout << "Hello from PDBaseClass Ctor" << endl;
+    cout << "Hello from PDBaseClass Ctor" << endl;
+
+    //	---------------------------------------
+    //	Get parameters from 'CommonParams':
+    //	---------------------------------------
+
+    box.reserve(3);
+    box[0] = p.LX;
+    box[1] = p.LY;
+    box[2] = p.LZ;
+    dt = p.dt;
+    rank = p.rank;
+    dtover2 = dt/2.0;
+    current_step = 0;
+    if (p.nz == 1) flag2D = true;
+    if (p.nz  > 1) flag2D = false;
+    
+    //	---------------------------------------
+    //	Get other parameters from 'GetPot':
+    //	---------------------------------------
+
+    N = input_params("PDApp/N",1);              // # of particles
+    rcut = input_params("PDApp/rcut",4.0);      // cut-off radius for particle-particle interactions
+    rcut2 = rcut*rcut;
+
+    //	---------------------------------------
+    //	Establish vector dimensions:
+    //	---------------------------------------
+
+    for (int i=0; i<N; i++) {
+        rad.push_back(1.0);
+        mass.push_back(1.0);
+        for (int k=0; k<3; k++) {
+            r.push_back(0.0);
+            v.push_back(0.0);
+            f.push_back(0.0);
+        }
+    }
+
+    //	---------------------------------------
+    //	Create initial conditions object:
+    //	---------------------------------------
+
+    icObj = PInitCond::PInitCondFactory(input_params,r,v,rad);
 
    //	---------------------------------------
-   //	Get parameters from 'CommonParams':
+   // Output the initial configuration:
    //	---------------------------------------
 
-   box.reserve(3);
-   box[0] = p.LX;
-   box[1] = p.LY;
-   box[2] = p.LZ;
-   dt = p.dt;
-   rank = p.rank;
-   dtover2 = dt/2.0;
    current_step = 0;
-   if (p.nz == 1) flag2D = true;
-   if (p.nz  > 1) flag2D = false;
-
-   //	---------------------------------------
-   //	Get other parameters from 'GetPot':
-   //	---------------------------------------
-
-   N = input_params("PDApp/N",1);              // # of particles
-   rcut = input_params("PDApp/rcut",4.0);      // cut-off radius for particle-particle interactions
-   rcut2 = rcut*rcut;
-
-   //	---------------------------------------
-   //	Establish vector dimensions:
-   //	---------------------------------------
-
-   for (int i=0; i<N; i++) {
-      rad.push_back(1.0);
-      mass.push_back(1.0);
-      for (int k=0; k<3; k++) {
-         r.push_back(0.0);
-         v.push_back(0.0);
-         f.push_back(0.0);
-      }
-   }
+   outputParticles();  
 
    //	---------------------------------------
    // initialize linked-list cells:
@@ -112,11 +125,11 @@ PDBaseClass::~PDBaseClass()
 
 void PDBaseClass::updateParticles()
 {
-   velocityHalfKick();
-   updatePositions();
-   applyBoundaryConditions();
-	pairwiseForces();
-   velocityHalfKick();
+    velocityHalfKick();
+    updatePositions();
+    applyBoundaryConditions();
+    pairwiseForces();
+    velocityHalfKick();
 }
 
 
@@ -127,9 +140,9 @@ void PDBaseClass::updateParticles()
 
 void PDBaseClass::updatePositions()
 {
-   for (int i=0; i<N; i++) {
-      for (int k=0; k<3; k++) r[i*3+k] += dt*v[i*3+k];
-   }
+    for (int i=0; i<N; i++) {
+        for (int k=0; k<3; k++) r[i*3+k] += dt*v[i*3+k];
+    }
 }
 
 
@@ -140,9 +153,9 @@ void PDBaseClass::updatePositions()
 
 void PDBaseClass::velocityHalfKick()
 {
-   for (int i=0; i<N; i++) {
-      for (int k=0; k<3; k++) v[i*3+k] += dtover2*f[i*3+k]/mass[i];
-   }
+    for (int i=0; i<N; i++) {
+        for (int k=0; k<3; k++) v[i*3+k] += dtover2*f[i*3+k]/mass[i];
+    }
 }
 
 
@@ -153,9 +166,9 @@ void PDBaseClass::velocityHalfKick()
 
 void PDBaseClass::applyBoundaryConditions()
 {
-   for (int i=0; i<N; i++) {
-      for (int k=0; k<3; k++) r[i*3+k] -= floor(r[i*3+k]/box[k])*box[k];
-   }
+    for (int i=0; i<N; i++) {
+        for (int k=0; k<3; k++) r[i*3+k] -= floor(r[i*3+k]/box[k])*box[k];
+    }
 }
 
 
@@ -167,68 +180,58 @@ void PDBaseClass::applyBoundaryConditions()
 void PDBaseClass::pairwiseForces()
 {
 
-   //	---------------------------------------
-   //	First, update linked-list vectors:
-   //	---------------------------------------
+    //	---------------------------------------
+    //	First, update linked-list vectors:
+    //	---------------------------------------
 
-   for (int i=0; i<ncell; i++) head[i] = -1;
+    for (int i=0; i<ncell; i++) head[i] = -1;
 
-   for (int i=0; i<N; i++) {
-      int icell = int(floor(r[i*3+0]/cellWidthx))*ncellz*ncelly +
-                  int(floor(r[i*3+1]/cellWidthy))*ncellz +
-                  int(floor(r[i*3+2]/cellWidthz));
-      list[i] = head[icell];
-      head[icell] = i;
-   }
+    for (int i=0; i<N; i++) {
+        int icell = int(floor(r[i*3+0]/cellWidthx))*ncellz*ncelly +
+            int(floor(r[i*3+1]/cellWidthy))*ncellz +
+            int(floor(r[i*3+2]/cellWidthz));
+        list[i] = head[icell];
+        head[icell] = i;
+    }
 
-   //	---------------------------------------
-   //	Then, loop over cells to calculate
-   // interactions:
-   //	---------------------------------------
+    //	---------------------------------------
+    //	Then, loop over cells to calculate
+    // interactions:
+    //	---------------------------------------
 
-   for (int ic=0; ic<ncellx; ic++)
-   for (int jc=0; jc<ncelly; jc++)
-   for (int kc=0; kc<ncellz; kc++) {
+    for (int ic=0; ic<ncellx; ic++)
+        for (int jc=0; jc<ncelly; jc++)
+            for (int kc=0; kc<ncellz; kc++) {
 
-      // loop over particles in current cell:
-      int icell = ic*ncellz*ncelly + jc*ncellz + kc;
-      int i = head[icell];
-      while (i >= 0) {
+                // loop over particles in current cell:
+                int icell = ic*ncellz*ncelly + jc*ncellz + kc;
+                int i = head[icell];
+                while (i >= 0) {
 
-         // loop over other particles in current cell:
-         int j = list[i];
-         while (j >= 0) {
-            fijFunc(i,j);
-            j = list[j];
-         }
+                    // loop over other particles in current cell:
+                    int j = list[i];
+                    while (j >= 0) {
+                        fijFunc(i,j);
+                        j = list[j];
+                    }
 
-         // loop over neighboring cells:
-         for (int nbor=0; nbor<nncells; nbor++) {
-            int jcell = cellmap[icell*nncells + nbor];
-            // loop over all particles in jcell:
-            int k = head[jcell];
-            while (k >= 0) {
-               fijFunc(i,k);
-               k = list[k];
+                    // loop over neighboring cells:
+                    for (int nbor=0; nbor<nncells; nbor++) {
+                        int jcell = cellmap[icell*nncells + nbor];
+                        // loop over all particles in jcell:
+                        int k = head[jcell];
+                        while (k >= 0) {
+                            fijFunc(i,k);
+                            k = list[k];
+                        }
+                    }
+
+                    // move to next particle in icell:
+                    i = list[i];
+
+                }
+
             }
-         }
-
-         // move to next particle in icell:
-         i = list[i];
-
-      }
-
-   }
-
-	//	---------------------------------------
-   //	Calculate pairwise forces (slow way):
-   //	---------------------------------------
-
-   // for (int i=0; i<N; i++) {
-   //    for (int j=0; j<i; j++) {
-   //       calcIJInteraction(i,j);
-   //    }
-   // }
 
 }
 
@@ -240,7 +243,7 @@ void PDBaseClass::pairwiseForces()
 
 void PDBaseClass::outputParticles()
 {
-   writeVTKFile("particles",current_step);
+    writeVTKFile("particles",current_step);
 }
 
 
@@ -252,44 +255,44 @@ void PDBaseClass::outputParticles()
 void PDBaseClass::writeVTKFile(string tagname, int tagnum)
 {
 
-   // -----------------------------------
-   //	Define the file location and name:
-   // -----------------------------------
+    // -----------------------------------
+    //	Define the file location and name:
+    // -----------------------------------
 
-   ofstream outfile;
-   std::stringstream filenamecombine;
-   filenamecombine << "vtkoutput/" << tagname << "_" << tagnum << ".vtk";
-   string filename = filenamecombine.str();
-   outfile.open(filename.c_str(), ios::out | ios::app);
+    ofstream outfile;
+    std::stringstream filenamecombine;
+    filenamecombine << "vtkoutput/" << tagname << "_" << tagnum << ".vtk";
+    string filename = filenamecombine.str();
+    outfile.open(filename.c_str(), ios::out | ios::app);
 
-   // -----------------------------------
-   //	Write the 'vtk' file header:
-   // -----------------------------------
+    // -----------------------------------
+    //	Write the 'vtk' file header:
+    // -----------------------------------
 
-   string d = "   ";
-   outfile << "# vtk DataFile Version 3.1" << endl;
-   outfile << "VTK file containing particle data" << endl;
-   outfile << "ASCII" << endl;
-   outfile << " " << endl;
-   outfile << "DATASET POLYDATA" << endl;
-   outfile << " " << endl;
-   outfile << "POINTS" << d << N << d << " float" << endl;
+    string d = "   ";
+    outfile << "# vtk DataFile Version 3.1" << endl;
+    outfile << "VTK file containing particle data" << endl;
+    outfile << "ASCII" << endl;
+    outfile << " " << endl;
+    outfile << "DATASET POLYDATA" << endl;
+    outfile << " " << endl;
+    outfile << "POINTS" << d << N << d << " float" << endl;
 
-   // -----------------------------------
-   //	Write the data:
-   // NOTE: x-data increases fastest,
-   //       then y-data, then z-data
-   // -----------------------------------
+    // -----------------------------------
+    //	Write the data:
+    // NOTE: x-data increases fastest,
+    //       then y-data, then z-data
+    // -----------------------------------
 
-   for (int i=0; i<N; i++) {
-      outfile << fixed << setprecision(3) << r[i*3+0] << d << r[i*3+1] << d << r[i*3+2] << endl;
-   }
+    for (int i=0; i<N; i++) {
+        outfile << fixed << setprecision(3) << r[i*3+0] << d << r[i*3+1] << d << r[i*3+2] << endl;
+    }
 
-   // -----------------------------------
-   //	Close the file:
-   // -----------------------------------
+    // -----------------------------------
+    //	Close the file:
+    // -----------------------------------
 
-	outfile.close();
+    outfile.close();
 }
 
 

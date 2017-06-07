@@ -76,7 +76,6 @@ PDApp::~PDApp()
 
 void PDApp::initSystem()
 {
-   pd_object->initParticles();
 }
 
 

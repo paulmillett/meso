@@ -15,8 +15,14 @@ public:
 
    Hertz(const CommonParams&, const GetPot&);
    ~Hertz();
-   void initParticles();
    void fijFunc(int,int);
+
+   // fijFunc params
+   double rij[3];
+   double rijUnit[3];
+   double rijMag;
+   double s2s;
+   double fmag;
 
 };
 
