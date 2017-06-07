@@ -2,7 +2,7 @@
 # ifndef VFIELD_H
 # define VFIELD_H
 
-# include "../utils/CommonParams.h"
+# include "../../utils/CommonParams.h"
 # include "Sfield.hpp"
 
 class Vfield {

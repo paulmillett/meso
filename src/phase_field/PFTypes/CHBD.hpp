@@ -3,9 +3,9 @@
 # define CHBD_H
 
 # include "../PFBaseClass.hpp"
-# include "../Sfield.hpp"
-# include "../Vfield.hpp"
-# include "../PartDisp.hpp"
+# include "../PFUtils/Sfield.hpp"
+# include "../PFUtils/Vfield.hpp"
+# include "../PFUtils/PartDisp.hpp"
 # include <complex.h>
 # include <fftw3-mpi.h>
 

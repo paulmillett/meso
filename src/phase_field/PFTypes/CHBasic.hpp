@@ -3,8 +3,8 @@
 # define CHBASIC_H
 
 # include "../PFBaseClass.hpp"
-# include "../Sfield.hpp"
-# include "../Vfield.hpp"
+# include "../PFUtils/Sfield.hpp"
+# include "../PFUtils/Vfield.hpp"
 # include <complex.h>
 # include <fftw3-mpi.h>
 

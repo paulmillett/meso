@@ -19,10 +19,12 @@ SRCS = $(wildcard src/cahn_hilliard/finite_difference/*.cpp \
 						src/lattice_boltzmann/*.cpp \
 						src/phase_field/*.cpp \
 						src/phase_field/*/*.cpp \
+						src/particle_dynamics/*.cpp \
+						src/particle_dynamics/*/*.cpp \
                   src/base/*.cpp)
 
 						#src/fipi/*.cpp \
-						
+
 # -------------------------------------------------------------------------------
 # rules for compiling and linking...
 # -------------------------------------------------------------------------------

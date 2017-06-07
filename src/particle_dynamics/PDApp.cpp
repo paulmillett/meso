@@ -1,5 +1,5 @@
 
-# include "PFApp.hpp"
+# include "PDApp.hpp"
 using namespace std;
 
 
@@ -8,7 +8,7 @@ using namespace std;
 // Constructor:
 // -------------------------------------------------------------------------
 
-PFApp::PFApp(const GetPot& input_params)
+PDApp::PDApp(const GetPot& input_params)
 {
 
    //	---------------------------------------
@@ -49,10 +49,10 @@ PFApp::PFApp(const GetPot& input_params)
    p.xOff = offx;
 
    //	---------------------------------------
-   //	Create a PF object:
+   //	Create a PD object:
    //	---------------------------------------
 
-   pf_object = PFBaseClass::PFFactory(p,input_params);
+   pd_object = PDBaseClass::PDFactory(p,input_params);
 
 
 }
@@ -63,9 +63,9 @@ PFApp::PFApp(const GetPot& input_params)
 // Destructor:
 // -------------------------------------------------------------------------
 
-PFApp::~PFApp()
+PDApp::~PDApp()
 {
-   delete pf_object;
+   delete pd_object;
 }
 
 
@@ -74,9 +74,9 @@ PFApp::~PFApp()
 // Initialize system:
 // -------------------------------------------------------------------------
 
-void PFApp::initSystem()
+void PDApp::initSystem()
 {
-   pf_object->initPhaseField();
+   pd_object->initParticles();
 }
 
 
@@ -85,7 +85,7 @@ void PFApp::initSystem()
 // Take one step forward in time:
 // -------------------------------------------------------------------------
 
-void PFApp::stepForward(int step)
+void PDApp::stepForward(int step)
 {
 
    // ----------------------------------------
@@ -93,13 +93,13 @@ void PFApp::stepForward(int step)
    // ----------------------------------------
 
    current_step = step;
-   pf_object->setTimeStep(current_step);
+   pd_object->setTimeStep(current_step);
 
    // ----------------------------------------
-   //	Update CH system:
+   //	Update Particles system:
    // ----------------------------------------
 
-   pf_object->updatePhaseField();
+   pd_object->updateParticles();
 
 }
 
@@ -109,7 +109,7 @@ void PFApp::stepForward(int step)
 // Write output:
 // -------------------------------------------------------------------------
 
-void PFApp::writeOutput(int step)
+void PDApp::writeOutput(int step)
 {
-   pf_object->outputPhaseField();
+   pd_object->outputParticles();
 }

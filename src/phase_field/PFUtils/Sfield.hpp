@@ -2,7 +2,7 @@
 # ifndef SFIELD_H
 # define SFIELD_H
 
-# include "../utils/CommonParams.h"
+# include "../../utils/CommonParams.h"
 # include <string>
 # include <complex.h>
 # include <fftw3-mpi.h>

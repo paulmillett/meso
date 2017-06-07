@@ -5,7 +5,7 @@
 # include <mpi.h>
 # include <string>
 # include <vector>
-# include "../utils/CommonParams.h"
+# include "../../utils/CommonParams.h"
 # include "Sfield.hpp"
 # include "Vfield.hpp"
 

@@ -18,6 +18,9 @@
 // Phase-Field classes:
 # include "../phase_field/PFApp.hpp"
 
+// Particle-Dynamics classes:
+# include "../particle_dynamics/PDApp.hpp"
+
 // FIPI (Fast Interface-Particle Interactions) classes:
 //# include "../fipi/FIPIApp.hpp"
 
@@ -45,6 +48,7 @@ MesoBase* MesoBase::MesoObjectFactory(string specifier)
    if (specifier == "BDApp/") return new BDApp(InParams);
    if (specifier == "LBApp/") return new LBApp(InParams);
    if (specifier == "PFApp/") return new PFApp(InParams);
+   if (specifier == "PDApp/") return new PDApp(InParams);
    //if (specifier == "FIPIApp/") return new FIPIApp(InParams);
 
 }
