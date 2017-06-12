@@ -7,7 +7,7 @@
 # include <fftw3-mpi.h>
 # include "../base/MesoBase.hpp"
 # include "../utils/CommonParams.h"
-# include "PDBaseClass.hpp"
+# include "PDParticles.hpp"
 
 
 class PDApp : public MesoBase {
@@ -16,7 +16,7 @@ private:
 
 	int current_step;
 	CommonParams p;
-	PDBaseClass* pd_object;
+	PDParticles* pd_object;
 
 public:
 

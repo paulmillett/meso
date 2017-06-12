@@ -52,7 +52,7 @@ PDApp::PDApp(const GetPot& input_params)
    //	Create a PD object:
    //	---------------------------------------
 
-   pd_object = new PDBaseClass(p,input_params);
+   pd_object = new PDParticles(p,input_params);
 
 }
 

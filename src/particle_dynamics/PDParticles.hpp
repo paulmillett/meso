@@ -1,12 +1,11 @@
 
-# ifndef PDBASECLASS_H
-# define PDBASECLASS_H
+# ifndef PDPARTICLES_H
+# define PDPARTICLES_H
 
 # include "../utils/CommonParams.h"
 # include "../utils/GetPot"
 # include "PDInits/PDInits_BaseClass.hpp"
 # include "PDForces/PDForces_BaseClass.hpp"
-//# include "initial_conditions/PInitCond_Interface.hpp"
 using namespace std;
 
 // ---------------------------------------------------------------------
@@ -16,45 +15,22 @@ using namespace std;
 // verlet, etc.)
 // ---------------------------------------------------------------------
 
-class PDBaseClass {
+class PDParticles {
 
     public:
 
-        // -------------------------------------------------------------------
-        // Factory method that creates objects of sub-classes:
-        // -------------------------------------------------------------------
-
-        // static PDBaseClass* PDFactory(const CommonParams&, const GetPot&);
-
-        // -------------------------------------------------------------------
-        // pure virtual functions:
-        // -------------------------------------------------------------------
-
-        //virtual void fijFunc(int,int) = 0;
-
-        // -------------------------------------------------------------------
-        // common functions:
-        // -------------------------------------------------------------------
-
-        PDBaseClass(const CommonParams&, const GetPot&);
-        ~PDBaseClass();
+        PDParticles(const CommonParams&, const GetPot&);
+        ~PDParticles();
         void updateParticles();
         void outputParticles();
         void setTimeStep(int step) {current_step = step;}
         void initParticles();
 
-    protected:
+    private:
 
         int N;
         int rank;
         int current_step;
-        std::vector <double> r,v,f;
-        std::vector <double> rad;
-        std::vector <double> box;
-        std::vector <double> mass;
-
-    private:
-
         int ncell, nncells;
         int ncellx,ncelly,ncellz;
         bool flag2D;
@@ -64,10 +40,13 @@ class PDBaseClass {
         double rcut2;
         double cellWidth;
         double cellWidthx,cellWidthy,cellWidthz;
+        std::vector <double> r,v,f;
+        std::vector <double> rad;
+        std::vector <double> box;
+        std::vector <double> mass;
         std::vector <int> head,list;
         std::vector <int> cellmap;
         PDInits_BaseClass* icObj;
-        //PInitCond* icObj;
         PDForces_BaseClass* fijObj;
         void velocityHalfKick();
         void updatePositions();
@@ -80,4 +59,4 @@ class PDBaseClass {
 
 };
 
-# endif  // PDBASECLASS_H
+# endif  // PDPARTICLES_H

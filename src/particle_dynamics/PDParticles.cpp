@@ -1,5 +1,5 @@
 
-# include "PDBaseClass.hpp"
+# include "PDParticles.hpp"
 # include <string>
 # include <iomanip>
 # include <fstream>
@@ -14,7 +14,7 @@
 // Constructor:
 // -------------------------------------------------------------------------
 
-PDBaseClass::PDBaseClass(const CommonParams& p, const GetPot& input_params)
+PDParticles::PDParticles(const CommonParams& p, const GetPot& input_params)
 {
 
     //	---------------------------------------
@@ -76,7 +76,7 @@ PDBaseClass::PDBaseClass(const CommonParams& p, const GetPot& input_params)
 // Destructor:
 // -------------------------------------------------------------------------
 
-PDBaseClass::~PDBaseClass()
+PDParticles::~PDParticles()
 {
 
 }
@@ -87,7 +87,7 @@ PDBaseClass::~PDBaseClass()
 // Initializer:
 // -------------------------------------------------------------------------
 
-void PDBaseClass::initParticles()
+void PDParticles::initParticles()
 {
     icObj->icFunc();
     current_step = 0;
@@ -100,7 +100,7 @@ void PDBaseClass::initParticles()
 // Updater:
 // -------------------------------------------------------------------------
 
-void PDBaseClass::updateParticles()
+void PDParticles::updateParticles()
 {
     velocityHalfKick();
     updatePositions();
@@ -116,7 +116,7 @@ void PDBaseClass::updateParticles()
 // Update the particle positions by the time step:
 // -------------------------------------------------------------------------
 
-void PDBaseClass::updatePositions()
+void PDParticles::updatePositions()
 {
     for (int i=0; i<N; i++) {
         for (int k=0; k<3; k++) r[i*3+k] += dt*v[i*3+k];
@@ -129,7 +129,7 @@ void PDBaseClass::updatePositions()
 // Update particle velocities by half the time step:
 // -------------------------------------------------------------------------
 
-void PDBaseClass::velocityHalfKick()
+void PDParticles::velocityHalfKick()
 {
     for (int i=0; i<N; i++) {
         for (int k=0; k<3; k++) v[i*3+k] += dtover2*f[i*3+k]/mass[i];
@@ -142,7 +142,7 @@ void PDBaseClass::velocityHalfKick()
 // Enforce boundary conditions (periodic):
 // -------------------------------------------------------------------------
 
-void PDBaseClass::applyBoundaryConditions()
+void PDParticles::applyBoundaryConditions()
 {
     for (int i=0; i<N; i++) {
         for (int k=0; k<3; k++) r[i*3+k] -= floor(r[i*3+k]/box[k])*box[k];
@@ -155,7 +155,7 @@ void PDBaseClass::applyBoundaryConditions()
 // Pairwise particle forces:
 // -------------------------------------------------------------------------
 
-void PDBaseClass::pairwiseForces()
+void PDParticles::pairwiseForces()
 {
 
     //	---------------------------------------
@@ -219,7 +219,7 @@ void PDBaseClass::pairwiseForces()
 // Auxiliary forces:
 // -------------------------------------------------------------------------
 
-void PDBaseClass::auxiliaryForces()
+void PDParticles::auxiliaryForces()
 {
 
 }
@@ -230,7 +230,7 @@ void PDBaseClass::auxiliaryForces()
 // Outputer:
 // -------------------------------------------------------------------------
 
-void PDBaseClass::outputParticles()
+void PDParticles::outputParticles()
 {
     writeVTKFile("particles",current_step);
 }
@@ -241,7 +241,7 @@ void PDBaseClass::outputParticles()
 // Write VTK file for particles:
 // -------------------------------------------------------------------------
 
-void PDBaseClass::writeVTKFile(string tagname, int tagnum)
+void PDParticles::writeVTKFile(string tagname, int tagnum)
 {
 
     // -----------------------------------
@@ -290,7 +290,7 @@ void PDBaseClass::writeVTKFile(string tagname, int tagnum)
 // Setup the linked-list cell structure.
 // -------------------------------------------------------------------------
 
-void PDBaseClass::setupParticleCells()
+void PDParticles::setupParticleCells()
 {
 
    //	---------------------------------------
@@ -361,7 +361,7 @@ void PDBaseClass::setupParticleCells()
 // x- y- z-coordinates of cell:
 // -------------------------------------------------------------------------
 
-int PDBaseClass::cellIndex(int i, int j, int k)
+int PDParticles::cellIndex(int i, int j, int k)
 {
    if (i < 0) i += ncellx;
    if (i >= ncellx) i -= ncellx;
