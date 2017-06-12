@@ -1,6 +1,6 @@
 
-# ifndef PINITCOND_H
-# define PINITCOND_H
+# ifndef PDINITSBASECLASS_H
+# define PDINITSBASECLASS_H
 
 # include <vector>
 # include "../../utils/GetPot"
@@ -11,7 +11,7 @@ using namespace std;
 // This class serves as an interface, and contains a factory method.
 // ---------------------------------------------------------------------
 
-class PInitCond {
+class PDInits_BaseClass {
 
 public:
 
@@ -20,10 +20,10 @@ public:
    // sub-classes:
    // -------------------------------------------------------------------
 
-   static PInitCond* PInitCondFactory(const GetPot&,
-                                      vector<double>&,
-                                      vector<double>&,
-                                      vector<double>&);
+   static PDInits_BaseClass* PDInitFactory(const GetPot&,
+                                           vector<double>&,
+                                           vector<double>&,
+                                           vector<double>&);
 
    // -------------------------------------------------------------------
    // pure virtual function:
@@ -33,4 +33,4 @@ public:
 
 };
 
-# endif  // PINITCOND_H
+# endif  // PDINITSBASECLASS_H

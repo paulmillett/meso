@@ -8,35 +8,6 @@
 # include <stdlib.h>
 # include <iostream>
 
-// -------------------------------------------------------------------------
-// List of header files that need to be included...
-// -------------------------------------------------------------------------
-
-# include "PDTypes/Hertz.hpp"
-
-// -------------------------------------------------------------------------
-// Factory method: this function returns an object determined
-// by the input file:
-// -------------------------------------------------------------------------
-
-PDBaseClass* PDBaseClass::PDFactory(const CommonParams& p,
-        const GetPot& input_params)
-{
-
-    // -----------------------------------
-    // identify the requested object:
-    // -----------------------------------
-
-    string pd_type = input_params("PDApp/type","Hertz");
-
-    // -----------------------------------
-    // return the requested object:
-    // -----------------------------------
-
-    if (pd_type == "Hertz") return new Hertz(p,input_params);
-
-}
-
 
 
 // -------------------------------------------------------------------------
@@ -45,8 +16,6 @@ PDBaseClass* PDBaseClass::PDFactory(const CommonParams& p,
 
 PDBaseClass::PDBaseClass(const CommonParams& p, const GetPot& input_params)
 {
-
-    cout << "Hello from PDBaseClass Ctor" << endl;
 
     //	---------------------------------------
     //	Get parameters from 'CommonParams':
@@ -62,13 +31,13 @@ PDBaseClass::PDBaseClass(const CommonParams& p, const GetPot& input_params)
     current_step = 0;
     if (p.nz == 1) flag2D = true;
     if (p.nz  > 1) flag2D = false;
-    
+
     //	---------------------------------------
     //	Get other parameters from 'GetPot':
     //	---------------------------------------
 
-    N = input_params("PDApp/N",1);              // # of particles
-    rcut = input_params("PDApp/rcut",4.0);      // cut-off radius for particle-particle interactions
+    N = input_params("PDApp/N",1);   // # of particles
+    rcut = input_params("PDApp/inter_particle_forces/rcut",4.0);
     rcut2 = rcut*rcut;
 
     //	---------------------------------------
@@ -85,24 +54,19 @@ PDBaseClass::PDBaseClass(const CommonParams& p, const GetPot& input_params)
         }
     }
 
-    //	---------------------------------------
-    //	Create initial conditions object:
-    //	---------------------------------------
+    // ---------------------------------------
+    // Create objects for init. cond. &
+    // inter-particle force:
+    // ---------------------------------------
 
-    icObj = PInitCond::PInitCondFactory(input_params,r,v,rad);
+    icObj = PDInits_BaseClass::PDInitFactory(input_params,r,v,rad);
+    fijObj = PDForces_BaseClass::PDForcesFactory(input_params,r,v,f,rad);
 
-   //	---------------------------------------
-   // Output the initial configuration:
-   //	---------------------------------------
+    // ---------------------------------------
+    // initialize linked-list cells:
+    // ---------------------------------------
 
-   current_step = 0;
-   outputParticles();  
-
-   //	---------------------------------------
-   // initialize linked-list cells:
-   //	---------------------------------------
-
-   setupParticleCells();
+    setupParticleCells();
 
 }
 
@@ -120,6 +84,19 @@ PDBaseClass::~PDBaseClass()
 
 
 // -------------------------------------------------------------------------
+// Initializer:
+// -------------------------------------------------------------------------
+
+void PDBaseClass::initParticles()
+{
+    icObj->icFunc();
+    current_step = 0;
+    outputParticles();
+}
+
+
+
+// -------------------------------------------------------------------------
 // Updater:
 // -------------------------------------------------------------------------
 
@@ -129,6 +106,7 @@ void PDBaseClass::updateParticles()
     updatePositions();
     applyBoundaryConditions();
     pairwiseForces();
+    auxiliaryForces();
     velocityHalfKick();
 }
 
@@ -211,7 +189,7 @@ void PDBaseClass::pairwiseForces()
                     // loop over other particles in current cell:
                     int j = list[i];
                     while (j >= 0) {
-                        fijFunc(i,j);
+                        fijObj->fijFunc(i,j);
                         j = list[j];
                     }
 
@@ -221,7 +199,7 @@ void PDBaseClass::pairwiseForces()
                         // loop over all particles in jcell:
                         int k = head[jcell];
                         while (k >= 0) {
-                            fijFunc(i,k);
+                            fijObj->fijFunc(i,j);
                             k = list[k];
                         }
                     }
@@ -232,6 +210,17 @@ void PDBaseClass::pairwiseForces()
                 }
 
             }
+
+}
+
+
+
+// -------------------------------------------------------------------------
+// Auxiliary forces:
+// -------------------------------------------------------------------------
+
+void PDBaseClass::auxiliaryForces()
+{
 
 }
 

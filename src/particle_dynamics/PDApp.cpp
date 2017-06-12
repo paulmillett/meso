@@ -52,8 +52,7 @@ PDApp::PDApp(const GetPot& input_params)
    //	Create a PD object:
    //	---------------------------------------
 
-   pd_object = PDBaseClass::PDFactory(p,input_params);
-
+   pd_object = new PDBaseClass(p,input_params);
 
 }
 
@@ -76,6 +75,7 @@ PDApp::~PDApp()
 
 void PDApp::initSystem()
 {
+    pd_object->initParticles();
 }
 
 

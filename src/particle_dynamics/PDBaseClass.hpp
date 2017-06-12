@@ -4,7 +4,9 @@
 
 # include "../utils/CommonParams.h"
 # include "../utils/GetPot"
-# include "initial_conditions/PInitCond_Interface.hpp"
+# include "PDInits/PDInits_BaseClass.hpp"
+# include "PDForces/PDForces_BaseClass.hpp"
+//# include "initial_conditions/PInitCond_Interface.hpp"
 using namespace std;
 
 // ---------------------------------------------------------------------
@@ -22,13 +24,13 @@ class PDBaseClass {
         // Factory method that creates objects of sub-classes:
         // -------------------------------------------------------------------
 
-        static PDBaseClass* PDFactory(const CommonParams&, const GetPot&);
+        // static PDBaseClass* PDFactory(const CommonParams&, const GetPot&);
 
         // -------------------------------------------------------------------
         // pure virtual functions:
         // -------------------------------------------------------------------
 
-        virtual void fijFunc(int,int) = 0;
+        //virtual void fijFunc(int,int) = 0;
 
         // -------------------------------------------------------------------
         // common functions:
@@ -55,6 +57,7 @@ class PDBaseClass {
 
         int ncell, nncells;
         int ncellx,ncelly,ncellz;
+        bool flag2D;
         double dt;
         double dtover2;
         double rcut;
@@ -63,15 +66,18 @@ class PDBaseClass {
         double cellWidthx,cellWidthy,cellWidthz;
         std::vector <int> head,list;
         std::vector <int> cellmap;
-        PInitCond* icObj;
+        PDInits_BaseClass* icObj;
+        //PInitCond* icObj;
+        PDForces_BaseClass* fijObj;
         void velocityHalfKick();
         void updatePositions();
         void applyBoundaryConditions();
         void pairwiseForces();
+        void auxiliaryForces();
         void writeVTKFile(string,int);
         void setupParticleCells();
-        int cellIndex(int,int,int);  
-  
+        int cellIndex(int,int,int);
+
 };
 
 # endif  // PDBASECLASS_H
