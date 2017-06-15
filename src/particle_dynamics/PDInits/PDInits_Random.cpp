@@ -12,9 +12,12 @@ Random::Random(const GetPot& p, vector<double>& rin,
            r(rin), v(vin), rad(radin)
 {
     N = p("PDApp/N",1);
-    Lx = p("PDApp/Lx",5.0);
-    Ly = p("PDApp/Ly",5.0);
-    Lz = p("PDApp/Lz",5.0);
+    Lx = p("Domain/nx",5);
+    Ly = p("Domain/ny",5);
+    Lz = p("Domain/nz",5);
+    Lx *= p("Domain/dx",1.0);
+    Ly *= p("Domain/dy",1.0);
+    Lz *= p("Domain/dz",1.0);
     vscl = p("PDApp/initial_condition/vscl",0.0);
     pradii = p("PDApp/initial_condition/pradii",1.0);
 }
@@ -78,16 +81,19 @@ void Random::icFunc()
     double vsum[3] = {0.0, 0.0, 0.0};
     for (int i=0; i<N; i++) {
         for (int k=0; k<3; k++) {
-            double r = (double)rand()/RAND_MAX;
-            v[i*3+k] = vscl*(r - 0.5);
+            double rr = (double)rand()/RAND_MAX;
+            v[i*3+k] = vscl*(rr - 0.5);
             vsum[k] += v[i*3+k];
         }
     }
 
     // zero the total momentum:
-    for (int i=0; i<N; i++) {
-        for (int k=0; k<3; k++) {
-            v[i*3+k] -= vsum[k]/N;
+    if (vscl > 0.0)
+    {
+        for (int i=0; i<N; i++) {
+            for (int k=0; k<3; k++) {
+                v[i*3+k] -= vsum[k]/N;
+            }
         }
     }
 
