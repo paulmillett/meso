@@ -52,6 +52,7 @@ class PDParticles {
         void velocityHalfKick();
         void updatePositions();
         void applyBoundaryConditions();
+        void zeroForces();
         void pairwiseForces();
         void auxiliaryForces();
         void writeVTKFile(string,int);

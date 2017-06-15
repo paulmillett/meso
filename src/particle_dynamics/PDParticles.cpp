@@ -93,7 +93,6 @@ void PDParticles::initParticles()
 {
     icObj->icFunc();
     current_step = 0;
-    outputParticles();
 }
 
 
@@ -107,6 +106,7 @@ void PDParticles::updateParticles()
     velocityHalfKick();
     updatePositions();
     applyBoundaryConditions();
+    zeroForces();
     pairwiseForces();
     auxiliaryForces();
     velocityHalfKick();
@@ -150,6 +150,21 @@ void PDParticles::applyBoundaryConditions()
         for (int k=0; k<3; k++) r[i*3+k] -= floor(r[i*3+k]/box[k])*box[k];
     }
 }
+
+
+
+
+// -------------------------------------------------------------------------
+// Zero all forces:
+// -------------------------------------------------------------------------
+
+void PDParticles::zeroForces()
+{
+    for (int i=0; i<N; i++) {
+        for (int k=0; k<3; k++) f[i*3+k] = 0.0;
+    }
+}
+
 
 
 
@@ -212,7 +227,6 @@ void PDParticles::pairwiseForces()
                 }
 
             }
-
 }
 
 

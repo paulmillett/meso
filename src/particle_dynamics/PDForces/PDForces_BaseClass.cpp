@@ -7,6 +7,7 @@
 // -------------------------------------------------------------------------
 
 # include "PDForces_Hertz.hpp"
+# include "PDForces_Dipole.hpp"
 
 // -------------------------------------------------------------------------
 // Factory method: this function returns an object determined
@@ -27,5 +28,6 @@ PDForces_BaseClass* PDForces_BaseClass::PDForcesFactory(const GetPot& p,
    string fij_type = p("PDApp/inter_particle_forces/type","Hertz");
 
    if (fij_type == "Hertz") return new Hertz(p,r,v,f,rad);
+   if (fij_type == "Dipole") return new Dipole(p,r,v,f,rad);
 
 }
