@@ -325,6 +325,33 @@ void PDParticles::setupParticleCells()
    ncelly = int(floor(box[1]/cellWidth));
    ncellz = int(floor(box[2]/cellWidth));
    if (flag2D) ncellz = 1;
+
+   // make sure domain is big enough
+   if(!flag2D && (ncellz < 2 || ncelly < 2 || ncellx < 2))
+   {
+       cout << endl;
+       if (ncellz < 2)
+           cout << "\nDomain is not big enough in z-dim to support cell lists.\n";
+       if (ncelly < 2)
+           cout << "\nDomain is not big enough in y-dim to support cell lists.\n";
+       if (ncellx < 2)
+           cout << "\nDomain is not big enough in x-dim to support cell lists.\n";
+       cout << "\nEither change the domain size or the cut off radius.\n";
+       cout << endl << endl;
+       throw 88;
+   }
+   else if (ncelly < 2 || ncellx < 2)
+   {
+       cout << endl;
+       if (ncelly < 2)
+           cout << "\nDomain is not big enough in y-dim to support cell lists.\n";
+       if (ncellx < 2)
+           cout << "\nDomain is not big enough in x-dim to support cell lists.\n";
+       cout << "\nEither change the domain size or the cut off radius.\n";
+       cout << endl << endl;
+       throw 88;
+   }
+
    ncell = ncellx*ncelly*ncellz;
    cellWidthx = box[0]/double(ncellx);
    cellWidthy = box[1]/double(ncelly);
