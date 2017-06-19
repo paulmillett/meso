@@ -34,6 +34,7 @@ class PDParticles {
         int ncell, nncells;
         int ncellx,ncelly,ncellz;
         bool flag2D;
+        double bm_str, drag_coef;
         double dt;
         double dtover2;
         double rcut;
@@ -51,6 +52,7 @@ class PDParticles {
         void velocityHalfKick();
         void updatePositions();
         void applyBoundaryConditions();
+        void zeroForces();
         void pairwiseForces();
         void auxiliaryForces();
         void writeVTKFile(string,int);

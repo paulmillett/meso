@@ -21,7 +21,7 @@ PDParticles::PDParticles(const CommonParams& p, const GetPot& input_params)
     //	Get parameters from 'CommonParams':
     //	---------------------------------------
 
-    box.reserve(3);
+    box.resize(3);
     box[0] = p.LX;
     box[1] = p.LY;
     box[2] = p.LZ;
@@ -39,6 +39,8 @@ PDParticles::PDParticles(const CommonParams& p, const GetPot& input_params)
     N = input_params("PDApp/N",1);   // # of particles
     rcut = input_params("PDApp/inter_particle_forces/rcut",4.0);
     rcut2 = rcut*rcut;
+    drag_coef = input_params("PDApp/drag_coef",3.0);
+    bm_str = input_params("PDApp/bm_str",1.0);
 
     //	---------------------------------------
     //	Establish vector dimensions:
@@ -91,7 +93,6 @@ void PDParticles::initParticles()
 {
     icObj->icFunc();
     current_step = 0;
-    outputParticles();
 }
 
 
@@ -105,6 +106,7 @@ void PDParticles::updateParticles()
     velocityHalfKick();
     updatePositions();
     applyBoundaryConditions();
+    zeroForces();
     pairwiseForces();
     auxiliaryForces();
     velocityHalfKick();
@@ -148,6 +150,21 @@ void PDParticles::applyBoundaryConditions()
         for (int k=0; k<3; k++) r[i*3+k] -= floor(r[i*3+k]/box[k])*box[k];
     }
 }
+
+
+
+
+// -------------------------------------------------------------------------
+// Zero all forces:
+// -------------------------------------------------------------------------
+
+void PDParticles::zeroForces()
+{
+    for (int i=0; i<N; i++) {
+        for (int k=0; k<3; k++) f[i*3+k] = 0.0;
+    }
+}
+
 
 
 
@@ -199,7 +216,7 @@ void PDParticles::pairwiseForces()
                         // loop over all particles in jcell:
                         int k = head[jcell];
                         while (k >= 0) {
-                            fijObj->fijFunc(i,j);
+                            fijObj->fijFunc(i,k);
                             k = list[k];
                         }
                     }
@@ -210,7 +227,6 @@ void PDParticles::pairwiseForces()
                 }
 
             }
-
 }
 
 
@@ -222,6 +238,13 @@ void PDParticles::pairwiseForces()
 void PDParticles::auxiliaryForces()
 {
 
+    for (int i=0; i<N; i++) {
+        for (int j=0; j<3; j++) {
+            double rr = (double)rand()/RAND_MAX;
+            f[i*3+j] += bm_str*2.0*(rr-0.5);
+            f[i*3+j] -= drag_coef*v[i*3+j];
+        }
+    }
 }
 
 
@@ -302,6 +325,33 @@ void PDParticles::setupParticleCells()
    ncelly = int(floor(box[1]/cellWidth));
    ncellz = int(floor(box[2]/cellWidth));
    if (flag2D) ncellz = 1;
+
+   // make sure domain is big enough
+   if(!flag2D && (ncellz < 2 || ncelly < 2 || ncellx < 2))
+   {
+       cout << endl;
+       if (ncellz < 2)
+           cout << "\nDomain is not big enough in z-dim to support cell lists.\n";
+       if (ncelly < 2)
+           cout << "\nDomain is not big enough in y-dim to support cell lists.\n";
+       if (ncellx < 2)
+           cout << "\nDomain is not big enough in x-dim to support cell lists.\n";
+       cout << "\nEither change the domain size or the cut off radius.\n";
+       cout << endl << endl;
+       throw 88;
+   }
+   else if (ncelly < 2 || ncellx < 2)
+   {
+       cout << endl;
+       if (ncelly < 2)
+           cout << "\nDomain is not big enough in y-dim to support cell lists.\n";
+       if (ncellx < 2)
+           cout << "\nDomain is not big enough in x-dim to support cell lists.\n";
+       cout << "\nEither change the domain size or the cut off radius.\n";
+       cout << endl << endl;
+       throw 88;
+   }
+
    ncell = ncellx*ncelly*ncellz;
    cellWidthx = box[0]/double(ncellx);
    cellWidthy = box[1]/double(ncelly);
