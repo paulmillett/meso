@@ -26,7 +26,7 @@ class PDParticles {
         void setTimeStep(int step) {current_step = step;}
         void initParticles();
 
-    private:
+    protected:
 
         int N;
         int rank;

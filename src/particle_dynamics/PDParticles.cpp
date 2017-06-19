@@ -237,7 +237,6 @@ void PDParticles::pairwiseForces()
 
 void PDParticles::auxiliaryForces()
 {
-
     for (int i=0; i<N; i++) {
         for (int j=0; j<3; j++) {
             double rr = (double)rand()/RAND_MAX;
@@ -255,7 +254,7 @@ void PDParticles::auxiliaryForces()
 
 void PDParticles::outputParticles()
 {
-    writeVTKFile("particles",current_step);
+    writeVTKFile("particles",current_step);    
 }
 
 
