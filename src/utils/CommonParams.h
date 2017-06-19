@@ -8,6 +8,8 @@ struct CommonParams{
    int NX,NY,NZ;
    int rank;
    int np;
+   int nbrL;
+   int nbrR;
    int xOff;
    int iskip;
    int jskip;
