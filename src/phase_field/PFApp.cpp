@@ -11,9 +11,9 @@ using namespace std;
 PFApp::PFApp(const GetPot& input_params)
 {
 
-   //	---------------------------------------
-   //	Assign variables from 'input_params':
-   //	---------------------------------------
+   // ---------------------------------------
+   // Assign variables from 'input_params':
+   // ---------------------------------------
 
    p.NX = input_params("Domain/nx",1);
    p.NY = input_params("Domain/ny",1);
@@ -22,6 +22,7 @@ PFApp::PFApp(const GetPot& input_params)
    p.dy = input_params("Domain/dy",1.0);
    p.dz = input_params("Domain/dz",1.0);
    p.dt = input_params("Time/dt",1.0);
+   p.nstep = input_params("Time/nstep",1);
    p.iskip = input_params("Output/iskip",1);
    p.jskip = input_params("Output/jskip",1);
    p.kskip = input_params("Output/kskip",1);
@@ -29,16 +30,18 @@ PFApp::PFApp(const GetPot& input_params)
    p.LY = p.NY*p.dy;
    p.LZ = p.NZ*p.dz;
 
-   //	---------------------------------------
-   //	Get some MPI parameters:
-   //	---------------------------------------
+   // ---------------------------------------
+   // Get some MPI parameters:
+   // ---------------------------------------
 
    p.np = MPI::COMM_WORLD.Get_size();   // # of processors
    p.rank = MPI::COMM_WORLD.Get_rank(); // my processor number
+   p.nbrL = (p.rank-1) + ((p.rank-1) < 0)*p.np;        // left proc. neighbor
+   p.nbrR = (p.rank+1) - ((p.rank+1) > (p.np-1))*p.np; // right proc. neighbor
 
-   //	---------------------------------------
+   // ---------------------------------------
    // Set dimensions:
-   //	---------------------------------------
+   // ---------------------------------------
 
    ptrdiff_t locsize, locnx, offx;
    fftw_mpi_init();
@@ -48,9 +51,9 @@ PFApp::PFApp(const GetPot& input_params)
    p.nz = p.NZ;
    p.xOff = offx;
 
-   //	---------------------------------------
-   //	Create a PF object:
-   //	---------------------------------------
+   // ---------------------------------------
+   // Create a PF object:
+   // ---------------------------------------
 
    pf_object = PFBaseClass::PFFactory(p,input_params);
 
