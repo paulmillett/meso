@@ -13,7 +13,6 @@ ParticlesBDCH::ParticlesBDCH(const CommonParams& pin,
 {
     // get the capillary force parameters:
     cap_str = input_params("PFApp/cap_str",1.0);
-    cout << cap_str << endl;
     // vector dimensions:
     for (int i=0; i<N; i++)
         for (int k=0; k<3; k++)
@@ -39,8 +38,6 @@ ParticlesBDCH::~ParticlesBDCH()
 
 void ParticlesBDCH::auxiliaryForces()
 {
-
-    cout << "Hi" << endl;
 
     for (int i=0; i<N; i++) {
         for (int j=0; j<3; j++) {
