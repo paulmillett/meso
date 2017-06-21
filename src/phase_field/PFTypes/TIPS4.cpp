@@ -119,7 +119,7 @@ void TIPS4::updatePhaseField()
                 // mobility...
                 double Mc = 1.0;
                 if (cc > 0.1) Mc = 0.018/(pow(cc,1.75));
-                mob.setValue(ndx,Mc);                
+                mob.setValue(ndx,Mc);
             }
         }
     }
@@ -129,6 +129,7 @@ void TIPS4::updatePhaseField()
     // ---------------------------------------
 
     mu.updateBoundaryConditions();
+    mob.updateBoundaryConditions();
     MPI::COMM_WORLD.Barrier();
 
     //c += p.dt*M*mu.Laplacian();
