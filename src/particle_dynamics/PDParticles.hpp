@@ -26,7 +26,7 @@ class PDParticles {
         void setTimeStep(int step) {current_step = step;}
         void initParticles();
 
-    private:
+    protected:
 
         int N;
         int rank;
@@ -54,7 +54,7 @@ class PDParticles {
         void applyBoundaryConditions();
         void zeroForces();
         void pairwiseForces();
-        void auxiliaryForces();
+        virtual void auxiliaryForces();
         void writeVTKFile(string,int);
         void setupParticleCells();
         int cellIndex(int,int,int);
