@@ -16,6 +16,8 @@ private:
     int nx,ny,nz;
     int deli,delj,delk;
     int nxyz;
+    int outAnalysisInterval;
+    int numAnalysisOutputs;
     SfieldFD c;
     double co;
     double M;
@@ -35,6 +37,10 @@ public:
     void updatePhaseField();
     void outputPhaseField();
     void setTimeStep(int step) {current_step = step;}
+
+private:
+
+    void averageDropletSize();
 
 };
 
