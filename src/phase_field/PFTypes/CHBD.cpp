@@ -105,7 +105,7 @@ void CHBD::updatePhaseField()
     Sfield cp = particles.mapToGrid();
     if (current_step%20 == 0) {
         particles.calcCapillaryForce(cp,c1,c2);
-        particles.updateParticles();
+        if (p.rank == 0) particles.updateParticles();
     }
 
     //	---------------------------------------

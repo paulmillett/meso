@@ -27,7 +27,10 @@ class ParticlesBDCH : public PDParticles {
         const CommonParams& p;
         double cap_str;
         std::vector <double> fcap;
+        std::vector <double> fcapSum;
         void auxiliaryForces();
+        bool isMyParticle(double,int);
+        bool inMyDomain(int);
 
 };
 
