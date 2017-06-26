@@ -62,11 +62,11 @@ Sfield ParticlesBDCH::mapToGrid()
     MPI::COMM_WORLD.Bcast(&r,3*N,MPI_DOUBLE,0);
 
 
-    // width of region surrounding particles to probe:
-    int wdth = 7;
     // loop over particles:
     Sfield eta(p);
     for (int pp=0; pp<N; pp++) {
+        // width of region surrounding particles to probe:
+        int wdth = int(ceil(2*rad[pp]+1));
         // particle's position:
         double x = r[pp*3+0];
         double y = r[pp*3+1];
@@ -101,7 +101,7 @@ Sfield ParticlesBDCH::mapToGrid()
                             rz -= round(rz/(p.NZ*p.dz))*p.NZ*p.dz;
                             double r2 = rx*rx + ry*ry + rz*rz;
                             // assign spread function to grid:
-                            double val = 1.0 - r2/6.25;
+                            double val = 1.0 - r2/pow(rad[pp],2.0);
                             if (val < 0.0) val = 0.0;
                             double val0 = creal(eta.getValue(ii*p.nz*p.ny + jj*p.nz + kk));
                             eta.setValue(ii*p.nz*p.ny + jj*p.nz + kk, max(val,val0));
@@ -126,10 +126,11 @@ void ParticlesBDCH::calcCapillaryForce(const Sfield& cp,
 {
     // zero fcap array:
     for (int i=0; i<3*N; i++) fcap[i] = 0.0;
-    // width of region surrounding particles to probe:
-    int wdth = 7;
+
     // loop over particles:
     for (int pp=0; pp<N; pp++) {
+        // width of region surrounding particles to probe:
+        int wdth = int(ceil(2*rad[pp]+1));
         // particle's position:
         double x = r[pp*3+0];
         double y = r[pp*3+1];
@@ -169,7 +170,8 @@ void ParticlesBDCH::calcCapillaryForce(const Sfield& cp,
                             rz -= round(rz/(p.NZ*p.dz))*p.NZ*p.dz;
                             double rr = sqrt(rx*rx + ry*ry + rz*rz);
                             // calculate interface force on particle:
-                            double val = 1.0 - rr*rr/6.25;
+                            // should val = ccp?????
+                            double val = 1.0 - rr*rr/pow(rad[pp],2.0);
                             if (val < 0.0) val = 0.0;
                             double fint = val*cc1*cc2;
                             fcap[pp*3+0] += cap_str*fint*(rx);///rr);
@@ -197,10 +199,14 @@ void ParticlesBDCH::calcCapillaryForce(const Sfield& cp,
 
 bool ParticlesBDCH::isMyParticle(double x, int i)
 {
-    // don't forget PBCs!
     double lower = double(p.xOff)*p.dx - rad[i];
     double upper = double(p.xOff)*p.dx + double(p.nx)*p.dx + rad[i];
     if (x >= lower && x <= upper)
+        return true;
+    // implement PBC for first and last domain
+    else if ( p.rank == 0 && x > (lower+double(p.NX)*p.dx) )
+        return true;
+    else if ( p.rank == p.np && x < rad[i] )
         return true;
     else
         return false;
