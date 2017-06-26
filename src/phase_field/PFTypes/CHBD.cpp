@@ -105,6 +105,7 @@ void CHBD::updatePhaseField()
     Sfield cp = particles.mapToGrid();
     if (current_step%20 == 0) {
         particles.calcCapillaryForce(cp,c1,c2);
+        MPI::COMM_WORLD.Barrier();
         if (p.rank == 0) particles.updateParticles();
     }
 
@@ -137,7 +138,7 @@ void CHBD::outputPhaseField()
     int kskip = p.kskip;
     Sfield phi = c1 - c2;
     phi.writeVTKFile("c",current_step,iskip,jskip,kskip);
-    particles.outputParticles();
+    if (p.rank == 0) particles.outputParticles();
 }
 
 

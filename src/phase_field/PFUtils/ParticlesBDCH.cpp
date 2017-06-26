@@ -59,7 +59,7 @@ void ParticlesBDCH::auxiliaryForces()
 Sfield ParticlesBDCH::mapToGrid()
 {
     // MASTER broadcasts particle positions to everyone:
-    MPI::COMM_WORLD.Bcast(&r,3*N,MPI_DOUBLE,0);
+    MPI::COMM_WORLD.Bcast(&r[0],r.size(),MPI::DOUBLE,0);
 
 
     // loop over particles:
@@ -82,6 +82,7 @@ Sfield ParticlesBDCH::mapToGrid()
                 int ii = x0 - (wdth/2 - 1) + i;
                 if (ii < 0) ii += p.NX;
                 if (ii > p.NX-1) ii -= p.NX;
+                int ii_local = ii-p.xOff;
                 if (inMyDomain(ii) == true) {
                     for (int j=0; j<wdth; j++) {
                         int jj = y0 - (wdth/2 - 1) + j;
@@ -101,10 +102,10 @@ Sfield ParticlesBDCH::mapToGrid()
                             rz -= round(rz/(p.NZ*p.dz))*p.NZ*p.dz;
                             double r2 = rx*rx + ry*ry + rz*rz;
                             // assign spread function to grid:
-                            double val = 1.0 - r2/pow(rad[pp],2.0);
+                            double val = 1.0 - r2/(rad[pp]*rad[pp]);
                             if (val < 0.0) val = 0.0;
-                            double val0 = creal(eta.getValue(ii*p.nz*p.ny + jj*p.nz + kk));
-                            eta.setValue(ii*p.nz*p.ny + jj*p.nz + kk, max(val,val0));
+                            double val0 = creal(eta.getValue(ii_local*p.nz*p.ny + jj*p.nz + kk));
+                            eta.setValue(ii_local*p.nz*p.ny + jj*p.nz + kk, max(val,val0));
                         }
                     }
                 }
@@ -146,6 +147,7 @@ void ParticlesBDCH::calcCapillaryForce(const Sfield& cp,
                 int ii = x0 - (wdth/2 - 1) + i;
                 if (ii < 0) ii += p.NX;
                 if (ii > p.NX-1) ii -= p.NX;
+                int ii_local = ii - p.xOff;
                 if (inMyDomain(ii) == true) {
                     for (int j=0; j<wdth; j++) {
                         int jj = y0 - (wdth/2 - 1) + j;
@@ -157,7 +159,7 @@ void ParticlesBDCH::calcCapillaryForce(const Sfield& cp,
                             if (kk > p.NZ-1) kk -= p.NZ;
                             if (p.NZ == 1) kk = 0;
                             // get local field values:
-                            int ndx = ii*p.nz*p.ny + jj*p.nz + kk;
+                            int ndx = ii_local*p.nz*p.ny + jj*p.nz + kk;
                             double ccp = creal(cp.getValue(ndx));
                             double cc1 = creal(c1.getValue(ndx));
                             double cc2 = creal(c2.getValue(ndx));
@@ -171,7 +173,7 @@ void ParticlesBDCH::calcCapillaryForce(const Sfield& cp,
                             double rr = sqrt(rx*rx + ry*ry + rz*rz);
                             // calculate interface force on particle:
                             // should val = ccp?????
-                            double val = 1.0 - rr*rr/pow(rad[pp],2.0);
+                            double val = 1.0 - rr*rr/(rad[pp]*rad[pp]);
                             if (val < 0.0) val = 0.0;
                             double fint = val*cc1*cc2;
                             fcap[pp*3+0] += cap_str*fint*(rx);///rr);
@@ -184,7 +186,7 @@ void ParticlesBDCH::calcCapillaryForce(const Sfield& cp,
         }
     }
     // Collect all capillary forces to MASTER
-    MPI::COMM_WORLD.Reduce(&fcap,&fcapSum,3*N,MPI_DOUBLE,MPI_SUM,0);
+    MPI::COMM_WORLD.Reduce(&fcap[0],&fcapSum[0],3*N,MPI::DOUBLE,MPI::SUM,0);
     if (p.rank == 0) {
         for (int i=0; i<3*N; i++) fcap[i] = fcapSum[i];
     }

@@ -64,7 +64,7 @@ void Dipole::fijFunc(int i, int j)
         // add soft repulsive force
         radComp = 0.0;
         avgRad = (rad[i] + rad[j])/2.0;
-        radComp = eps*pow(avgRad/(rijMag-avgRad),n);
+        radComp = (n-1.0)*eps*pow(2.0*avgRad/rijMag),n);
 
         if (abs(Ex)>0 || abs(Ey)>0 || abs(Ez)>0)
         {
