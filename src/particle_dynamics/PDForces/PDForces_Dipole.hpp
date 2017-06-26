@@ -18,7 +18,7 @@ class Dipole : public PDForces_BaseClass {
 
 private:
 
-   double K,n;
+   double eps,n;
    double Ex,Ey,Ez;
    double edir[3];
    double Emag;

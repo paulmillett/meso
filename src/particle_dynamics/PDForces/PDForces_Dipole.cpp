@@ -13,7 +13,7 @@ Dipole::Dipole(const GetPot& p, vector<double>& rin, vector<double>& vin,
 {
     rcut = p("PDApp/inter_particle_forces/rcut",4.0);
     rcut2 = rcut*rcut;
-    K = p("PDApp/inter_particle_forces/K",50.0);
+    eps = p("PDApp/inter_particle_forces/eps",1.0);
     n = p("PDApp/inter_particle_forces/n",-13.0);
     Ex = p("PDApp/inter_particle_forces/Ex",0.0);
     Ey = p("PDApp/inter_particle_forces/Ey",0.0);
@@ -63,8 +63,8 @@ void Dipole::fijFunc(int i, int j)
 
         // add soft repulsive force
         radComp = 0.0;
-        avgRad = (rad.at(i) + rad.at(j))/2;
-        radComp = K*pow(rijMag-avgRad,n);
+        avgRad = (rad[i] + rad[j])/2.0;
+        radComp = (n-1.0)*eps*pow(2.0*avgRad/rijMag),n);
 
         if (abs(Ex)>0 || abs(Ey)>0 || abs(Ez)>0)
         {
