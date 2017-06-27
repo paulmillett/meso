@@ -73,7 +73,7 @@ void Dipole::fijFunc(int i, int j)
             EdotRij = rij[0]*Ex+rij[1]*Ey+rij[2]*Ez;
             theta = acos(EdotRij/(rijMag*Emag));
             ScaleFactor = pow(avgRad,6.0)*pow(Emag,2.0)/pow(rijMag,4.0);
-            radComp -= ScaleFactor*(3*pow(cos(theta),2.0)-1.0);
+            radComp -= ScaleFactor*(3.0*pow(cos(theta),2.0)-1.0);
             thetaComp = -ScaleFactor*sin(2.0*theta);
 
             // calculate theta hat direction
