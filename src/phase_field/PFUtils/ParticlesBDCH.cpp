@@ -190,6 +190,9 @@ void ParticlesBDCH::calcCapillaryForce(const Sfield& cp,
     if (p.rank == 0) {
         for (int i=0; i<3*N; i++) fcap[i] = fcapSum[i];
     }
+
+    // make sure all ranks finish before moving on
+    MPI::COMM_WORLD.Barrier();
 }
 
 

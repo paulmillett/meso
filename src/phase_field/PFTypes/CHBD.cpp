@@ -88,6 +88,7 @@ void CHBD::initPhaseField()
 
     current_step = 0;
     outputPhaseField();
+    MPI::COMM_WORLD.Barrier();
 
 }
 
@@ -107,7 +108,6 @@ void CHBD::updatePhaseField()
     if (current_step%part_step_skip == 0) {
         cp = particles.mapToGrid();
         particles.calcCapillaryForce(cp,c1,c2);
-        MPI::COMM_WORLD.Barrier();
         if (p.rank == 0) particles.updateParticles();
     }
 
@@ -125,6 +125,7 @@ void CHBD::updatePhaseField()
     c2 = (c2 - p.dt*k2*dfdc2)/(1.0 + kap*p.dt*k4);
     c1.ifft(p_backward);
     c2.ifft(p_backward);
+    MPI::COMM_WORLD.Barrier();
 }
 
 
