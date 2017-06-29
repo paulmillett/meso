@@ -16,6 +16,8 @@ private:
     const CommonParams& p;
     int current_step;
     int nxyz;
+    int part_step_skip;
+    Sfield cp;
     Sfield c1;
     Sfield c2;
     Vfield k1;

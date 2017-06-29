@@ -8,7 +8,7 @@
 // -------------------------------------------------------------------------
 
 CHBD::CHBD(const CommonParams& pin,
-           const GetPot& input_params) : p(pin), c1(p), c2(p),
+           const GetPot& input_params) : p(pin), c1(p), c2(p), cp(p),
                                          particles(p,input_params),
                                          k1(p), k2(p), k4(p)
 {
@@ -33,6 +33,7 @@ CHBD::CHBD(const CommonParams& pin,
     w = input_params("PFApp/w",1.0);
     M = input_params("PFApp/M",1.0);
     kap = input_params("PFApp/kap",1.0);
+    part_step_skip = input_params("PFApp/part_step_skip",1);
 
 }
 
@@ -73,6 +74,7 @@ void CHBD::initPhaseField()
     //	---------------------------------------
 
     particles.initParticles();
+    cp = particles.mapToGrid();
 
     //	---------------------------------------
     // initialize the fourier wave-vectors:
@@ -102,8 +104,8 @@ void CHBD::updatePhaseField()
     //	---------------------------------------
 
     particles.setTimeStep(current_step);
-    Sfield cp = particles.mapToGrid();
-    if (current_step%20 == 0) {
+    if (current_step%part_step_skip == 0) {
+        cp = particles.mapToGrid();
         particles.calcCapillaryForce(cp,c1,c2);
         MPI::COMM_WORLD.Barrier();
         if (p.rank == 0) particles.updateParticles();
