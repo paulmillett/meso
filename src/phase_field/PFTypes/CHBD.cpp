@@ -88,6 +88,11 @@ void CHBD::initPhaseField()
 
     current_step = 0;
     outputPhaseField();
+
+    //	---------------------------------------
+    // Sync the processors:
+    //	---------------------------------------
+
     MPI::COMM_WORLD.Barrier();
 
 }
@@ -100,15 +105,16 @@ void CHBD::initPhaseField()
 
 void CHBD::updatePhaseField()
 {
+
     //	---------------------------------------
     // Update particles:
     //	---------------------------------------
 
     particles.setTimeStep(current_step);
     if (current_step%part_step_skip == 0) {
-        cp = particles.mapToGrid();
         particles.calcCapillaryForce(cp,c1,c2);
         if (p.rank == 0) particles.updateParticles();
+        cp = particles.mapToGrid();
     }
 
     //	---------------------------------------
@@ -125,7 +131,13 @@ void CHBD::updatePhaseField()
     c2 = (c2 - p.dt*k2*dfdc2)/(1.0 + kap*p.dt*k4);
     c1.ifft(p_backward);
     c2.ifft(p_backward);
+
+    //	---------------------------------------
+    // Sync the processors:
+    //	---------------------------------------
+
     MPI::COMM_WORLD.Barrier();
+
 }
 
 

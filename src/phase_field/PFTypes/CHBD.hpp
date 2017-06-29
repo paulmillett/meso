@@ -17,9 +17,9 @@ private:
     int current_step;
     int nxyz;
     int part_step_skip;
-    Sfield cp;
     Sfield c1;
     Sfield c2;
+    Sfield cp;
     Vfield k1;
     Sfield k2;
     Sfield k4;
