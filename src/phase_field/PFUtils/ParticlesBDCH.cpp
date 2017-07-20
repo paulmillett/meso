@@ -61,7 +61,6 @@ Sfield ParticlesBDCH::mapToGrid()
     // MASTER broadcasts particle positions to everyone:
     MPI::COMM_WORLD.Bcast(&r[0],r.size(),MPI::DOUBLE,0);
 
-
     // loop over particles:
     Sfield eta(p);
     for (int pp=0; pp<N; pp++) {
@@ -190,7 +189,6 @@ void ParticlesBDCH::calcCapillaryForce(const Sfield& cp,
     if (p.rank == 0) {
         for (int i=0; i<3*N; i++) fcap[i] = fcapSum[i];
     }
-
     // make sure all ranks finish before moving on
     MPI::COMM_WORLD.Barrier();
 }
