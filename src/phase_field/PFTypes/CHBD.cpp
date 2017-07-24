@@ -58,23 +58,25 @@ void CHBD::initPhaseField()
 {
 
     //	---------------------------------------
-    // initialize the concentration field:
-    //	---------------------------------------
-
-    srand(time(NULL)*(p.rank+1));   // set the random seed
-    for (int i=0; i<nxyz; i++) {
-        double r = (double)rand()/RAND_MAX;
-        double val = co + 0.1*(r-0.5);
-        c1.setValue(i,val);
-        c2.setValue(i,1-val);
-    }
-
-    //	---------------------------------------
     // initialize the particle suspension:
     //	---------------------------------------
 
     particles.initParticles();
     cp = particles.mapToGrid();
+
+    //	---------------------------------------
+    // initialize the concentration fields:
+    //	---------------------------------------
+
+    srand(time(NULL)*(p.rank+1));   // set the random seed
+    for (int i=0; i<nxyz; i++) {
+        double cpi = creal(cp.getValue(i));
+        double r = (double)rand()/RAND_MAX;
+        double val = co + 0.1*(r-0.5);
+        val *= 1.0 - cpi;
+        c1.setValue(i,val);
+        c2.setValue(i,1-val);
+    }
 
     //	---------------------------------------
     // initialize the fourier wave-vectors:
