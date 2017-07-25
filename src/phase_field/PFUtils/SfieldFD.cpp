@@ -161,7 +161,7 @@ void SfieldFD::mpiBorderExchange()
     int indx = (nx+1)*deli;   // in  index
 
     MPI::COMM_WORLD.Sendrecv(&a[ondx],size,MPI::DOUBLE,nbrL,stamp,
-        &a[indx],size,MPI::DOUBLE,nbrR,stamp,status);
+            &a[indx],size,MPI::DOUBLE,nbrR,stamp,status);
 
     // -----------------------------------
     // Send to right, Recv from left
@@ -172,7 +172,7 @@ void SfieldFD::mpiBorderExchange()
     indx = 0;                 // in  index
 
     MPI::COMM_WORLD.Sendrecv(&a[ondx],size,MPI::DOUBLE,nbrR,stamp,
-        &a[indx],size,MPI::DOUBLE,nbrL,stamp,status);
+            &a[indx],size,MPI::DOUBLE,nbrL,stamp,status);
 
 }
 
@@ -250,7 +250,7 @@ SfieldFD SfieldFD::Laplacian(const SfieldFD& b) const
 // -------------------------------------------------------------------------
 
 void SfieldFD::writeVTKFile(std::string tagname, int tagnum,
-                            int iskip, int jskip, int kskip)
+        int iskip, int jskip, int kskip)
 {
 
     // -----------------------------------

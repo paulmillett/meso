@@ -34,6 +34,7 @@ CHBD::CHBD(const CommonParams& pin,
     M = input_params("PFApp/M",1.0);
     kap = input_params("PFApp/kap",1.0);
     part_step_skip = input_params("PFApp/part_step_skip",1);
+    eCH = input_params("PFApp/eCH",0.1);
 
 }
 
@@ -127,8 +128,20 @@ void CHBD::updatePhaseField()
     c2.fft(p_forward);
     dfdc1.fft(p_forward);
     dfdc2.fft(p_forward);
-    c1 = (c1 - p.dt*k2*dfdc1)/(1.0 + kap*p.dt*k4);
-    c2 = (c2 - p.dt*k2*dfdc2)/(1.0 + kap*p.dt*k4);
+    if (eCH > 0.0)
+    {
+        // update with electric field in z-direction
+        c1 = (c1 - p.dt*k2*dfdc1 - p.dt*eCH*(*kz)*(*kz)*c1)\
+             /(1.0 + kap*p.dt*k4);
+        c2 = (c2 - p.dt*k2*dfdc2 - p.dt*eCH*(*kz)*(*kz)*c2)\
+             /(1.0 + kap*p.dt*k4);
+    }
+    else
+    {
+        // update with no electric field
+        c1 = (c1 - p.dt*k2*dfdc1)/(1.0 + kap*p.dt*k4);
+        c2 = (c2 - p.dt*k2*dfdc2)/(1.0 + kap*p.dt*k4);
+    }
     c1.ifft(p_backward);
     c2.ifft(p_backward);
 
@@ -196,4 +209,5 @@ void CHBD::calculateKfields()
     k1.setXValues(kxf);
     k1.setYValues(kyf);
     k1.setZValues(kzf);
+    kz = k1.getZValues();
 }
