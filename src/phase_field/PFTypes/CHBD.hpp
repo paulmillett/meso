@@ -23,11 +23,13 @@ private:
     Vfield k1;
     Sfield k2;
     Sfield k4;
+    Sfield * kz; // for applying E-field in z-dir
     ParticlesBDCH particles;
     double co;
     double M;
     double w;
     double kap;
+    double eCH;
     fftw_plan p_forward;
     fftw_plan p_backward;
     fftw_complex* dummy;
