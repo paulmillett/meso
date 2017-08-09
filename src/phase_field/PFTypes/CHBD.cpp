@@ -166,8 +166,9 @@ void CHBD::outputPhaseField()
     int iskip = p.iskip;
     int jskip = p.jskip;
     int kskip = p.kskip;
-    Sfield phi = c1 - c2;
-    phi.writeVTKFile("c",current_step,iskip,jskip,kskip);
+    c1.writeVTKFile("c1",current_step,iskip,jskip,kskip);
+    c2.writeVTKFile("c2",current_step,iskip,jskip,kskip);
+    cp.writeVTKFile("cp",current_step,iskip,jskip,kskip);
     if (p.rank == 0) particles.outputParticles();
 }
 
