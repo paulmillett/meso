@@ -33,8 +33,8 @@ CHBD::CHBD(const CommonParams& pin,
     w = input_params("PFApp/w",1.0);
     M = input_params("PFApp/M",1.0);
     kap = input_params("PFApp/kap",1.0);
-    part_step_skip = input_params("PFApp/part_step_skip",1);
-    eCH = input_params("PFApp/eCH",0.1);
+    part_step_skip = input_params("PFApp/part_step_skip",5);
+    eCH = input_params("PFApp/eCH",0.0);
 
 }
 
