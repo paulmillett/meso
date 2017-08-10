@@ -19,11 +19,12 @@
 [PDApp]
     app = true              # turn on app
     N = 500                 # number of particles
+    pradii = 1.0            # particle radius
+    density = 0.23          # particle density
     drag_coef = 0.0         # drag strength due to viscosity of medium
     bm_str = 0.0            # brownian motion strength
     [./initial_condition]
         vscl = 0.2          # scale initial velocity
-        pradii = 1.0        # particle radius
         type = random       # place particles randomly in domain
 
     [../inter_particle_forces]

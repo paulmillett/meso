@@ -19,7 +19,6 @@ Random::Random(const GetPot& p, vector<double>& rin,
     Ly *= p("Domain/dy",1.0);
     Lz *= p("Domain/dz",1.0);
     vscl = p("PDApp/initial_condition/vscl",0.0);
-    pradii = p("PDApp/initial_condition/pradii",1.0);
 }
 
 
@@ -63,18 +62,13 @@ void Random::icFunc()
                 double dry = calc_separation_pbc(r[3*i + 1],r[3*k + 1],Ly);
                 double drz = calc_separation_pbc(r[3*i + 2],r[3*k + 2],Lz);
                 double rij = sqrt(drx*drx+dry*dry+drz*drz);
-                if (rij < 3.0*pradii) // assumes all particles have same radius
+                if (rij < 3.0*(rad[i]+rad[k])/2.0) 
                 {
                     tooClose = true;
                     break;
                 }
             }
         }
-    }
-
-    // initialize particle radii:
-    for (int i=0; i<N; i++) {
-        rad[i] = pradii;
     }
 
     // initialize particle velocities:

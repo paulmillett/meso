@@ -21,11 +21,12 @@
 
 [PDApp]
     N = 64                  # number of particles
+    pradii = 5.0            # particle radius
+    density = 0.23          # particle density
     drag_coef = 3.0         # drag strength due to viscosity of medium
     bm_str = 0.1            # brownian motion strength
     [./initial_condition]
         vscl = 0.0          # scale initial velocity
-        pradii = 5.0        # particle radius
         rscl = 0.1          # noise strength in particle positions
         type = lattice      # put particles on a lattice
 

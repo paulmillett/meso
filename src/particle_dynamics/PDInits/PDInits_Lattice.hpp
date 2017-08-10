@@ -26,7 +26,6 @@ private:
    int Nx, Ny, Nz; // number of particles in each direction
    double Lx, Ly, Lz;
    double vscl;
-   double pradii;
    double rscl;
    vector<double>& r;
    vector<double>& v;

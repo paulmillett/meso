@@ -20,7 +20,6 @@ CubicLattice::CubicLattice(const GetPot& p, vector<double>& rin,
     Lz *= p("Domain/dz",1.0);
     vscl = p("PDApp/initial_condition/vscl",0.0);
     rscl = p("PDApp/initial_condition/rscl",0.0);
-    pradii = p("PDApp/initial_condition/pradii",1.0);
 }
 
 
@@ -66,11 +65,6 @@ void CubicLattice::icFunc()
 
             }
         }
-    }
-
-    // initialize particle radii:
-    for (int i=0; i<N; i++) {
-        rad[i] = pradii;
     }
 
     // initialize particle velocities:

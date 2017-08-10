@@ -34,6 +34,8 @@ class PDParticles {
         int ncell, nncells;
         int ncellx,ncelly,ncellz;
         bool flag2D;
+        double density;
+        double pradii;
         double bm_str, drag_coef;
         double dt;
         double dtover2;

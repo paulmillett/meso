@@ -23,7 +23,6 @@ Lattice::Lattice(const GetPot& p, vector<double>& rin,
     Nx = p("PDApp/initial_condition/Nx",1);
     Ny = p("PDApp/initial_condition/Ny",1);
     Nz = p("PDApp/initial_condition/Nz",1);
-    pradii = p("PDApp/initial_condition/pradii",1.0);
 
     // check to make sure basic usage assumption is satisfied
     // make an error class later to clean up this code
@@ -79,11 +78,6 @@ void Lattice::icFunc()
 
             }
         }
-    }
-
-    // initialize particle radii:
-    for (int i=0; i<N; i++) {
-        rad[i] = pradii;
     }
 
     // initialize particle velocities:

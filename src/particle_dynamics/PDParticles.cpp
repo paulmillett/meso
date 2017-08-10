@@ -37,18 +37,23 @@ PDParticles::PDParticles(const CommonParams& p, const GetPot& input_params)
     //	---------------------------------------
 
     N = input_params("PDApp/N",1);   // # of particles
-    rcut = input_params("PDApp/inter_particle_forces/rcut",4.0);
+    pradii = input_params("PDApp/pradii",1.0);
+    rcut = input_params("PDApp/inter_particle_forces/rcut",6.0*pradii);
     rcut2 = rcut*rcut;
-    drag_coef = input_params("PDApp/drag_coef",3.0);
-    bm_str = input_params("PDApp/bm_str",1.0);
+    density = input_params("PDApp/density",0.23873241463);
+    drag_coef = input_params("PDApp/drag_coef",0.0);
+    bm_str = input_params("PDApp/bm_str",0.0);
 
     //	---------------------------------------
     //	Establish vector dimensions:
     //	---------------------------------------
 
+    for (int i=0; i<N; i++) 
+        rad.push_back(pradii);
+    double vol;
     for (int i=0; i<N; i++) {
-        rad.push_back(1.0);
-        mass.push_back(1.0);
+        vol = 4.0/3.0*3.14159265359*rad[i]*rad[i]*rad[i];
+        mass.push_back(density*vol);
         for (int k=0; k<3; k++) {
             r.push_back(0.0);
             v.push_back(0.0);
@@ -240,7 +245,7 @@ void PDParticles::auxiliaryForces()
     for (int i=0; i<N; i++) {
         for (int j=0; j<3; j++) {
             double rr = (double)rand()/RAND_MAX;
-            f[i*3+j] += bm_str*2.0*(rr-0.5);
+            f[i*3+j] += sqrt(bm_str*drag_coef*2.0)*2.0*(rr-0.5);
             f[i*3+j] -= drag_coef*v[i*3+j];
         }
     }
