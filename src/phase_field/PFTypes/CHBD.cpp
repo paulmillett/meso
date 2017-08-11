@@ -73,10 +73,12 @@ void CHBD::initPhaseField()
     for (int i=0; i<nxyz; i++) {
         double cpi = creal(cp.getValue(i));
         double r = (double)rand()/RAND_MAX;
-        double val = co + 0.1*(r-0.5);
-        val *= 1.0 - cpi;
-        c1.setValue(i,val);
-        c2.setValue(i,1-val);
+        double val1 = co + 0.1*(r-0.5);
+        double val2 = 1.0-val1;
+        val1 *= 1.0 - cpi;
+        val2 *= 1.0 - cpi;
+        c1.setValue(i,val1);
+        c2.setValue(i,val2);
     }
 
     //	---------------------------------------
