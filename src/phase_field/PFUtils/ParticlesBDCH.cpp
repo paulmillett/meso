@@ -43,7 +43,7 @@ void ParticlesBDCH::auxiliaryForces()
     for (int i=0; i<N; i++) {
         for (int j=0; j<3; j++) {
             double rr = (double)rand()/RAND_MAX;
-            f[i*3+j] += bm_str*2.0*(rr-0.5);
+            f[i*3+j] += sqrt(drag_coef*bm_str*2.0)*2.0*(rr-0.5);
             f[i*3+j] -= drag_coef*v[i*3+j];
             f[i*3+j] += fcap[i*3+j];
         }
