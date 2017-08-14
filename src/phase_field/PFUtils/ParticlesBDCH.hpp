@@ -22,8 +22,9 @@ class ParticlesBDCH : public PDParticles {
         Sfield mapToGrid();
         void calcCapillaryForce(const Sfield&, const Sfield&, const Sfield&);
 
-    private:
+    protected:
 
+        bool thinFilmGeometry;
         const CommonParams& p;
         double cap_str;
         std::vector <double> fcap;

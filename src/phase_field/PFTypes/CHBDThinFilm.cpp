@@ -59,7 +59,7 @@ void CHBDThinFilm::initPhaseField()
         c1.setValue(i,val1);
         c2.setValue(i,val2);
     }
-    makeWalls();
+    initWalls();
 
     //	---------------------------------------
     // initialize the fourier wave-vectors:
@@ -106,44 +106,9 @@ void CHBDThinFilm::updatePhaseField()
     // Update Cahn-Hilliard:
     //	---------------------------------------
 
-    Sfield dfdc1(p);
-    Sfield dfdc2(p);
-    // define free energy for top wall
-    for (int i=0; i<p.nx; i++)
-        for (int j=0; j<p.ny; j++)
-            for (int k=p.nz-thickness; k<p.nz; k++)
-            {
-                int index = k+p.nz*j+p.nz*p.ny*i;
-                double c1i = creal(c1.getValue(index));
-                double c2i = creal(c2.getValue(index));
-                dfdc1.setValue(index,c1i*c1i+c2i*c2i);
-                dfdc2.setValue(index,c1i*c1i+c2i*c2i);
-            }
-    // define free energy for bottom wall
-    for (int i=0; i<p.nx; i++)
-        for (int j=0; j<p.ny; j++)
-            for (int k=0; k<thickness; k++)
-            {
-                int index = k+p.nz*j+p.nz*p.ny*i;
-                double c1i = creal(c1.getValue(index));
-                double c2i = creal(c2.getValue(index));
-                dfdc1.setValue(index,c1i*c1i+c2i*c2i);
-                dfdc2.setValue(index,c1i*c1i+c2i*c2i);
-            }
-    // define free energy for section between walls
-    for (int i=0; i<p.nx; i++)
-        for (int j=0; j<p.ny; j++)
-            for (int k=thickness; k<p.nz-thickness; k++)
-            {
-                int index = k+p.nz*j+p.nz*p.ny*i;
-                double c1i = creal(c1.getValue(index));
-                double c2i = creal(c2.getValue(index));
-                double cpi = creal(cp.getValue(index));
-                double dfdc1i = 12.0*w*(c1i*c1i*c1i - c1i*c1i + c1i*c2i*c2i + c1i*cpi);
-                double dfdc2i = 12.0*w*(c2i*c2i*c2i - c2i*c2i + c2i*c1i*c1i + c2i*cpi);
-                dfdc1.setValue(index,dfdc1i);
-                dfdc2.setValue(index,dfdc2i);
-            }
+    mapWalls();
+    Sfield dfdc1 = 12.0*w*(c1*c1*c1 - c1*c1 + c1*c2*c2 + c1*cp);
+    Sfield dfdc2 = 12.0*w*(c2*c2*c2 - c2*c2 + c2*c1*c1 + c2*cp);
     c1.fft(p_forward);
     c2.fft(p_forward);
     dfdc1.fft(p_forward);
@@ -164,7 +129,6 @@ void CHBDThinFilm::updatePhaseField()
     }
     c1.ifft(p_backward);
     c2.ifft(p_backward);
-    /* makeWalls(); */
 
     //	---------------------------------------
     // Sync the processors:
@@ -178,10 +142,11 @@ void CHBDThinFilm::updatePhaseField()
 
 // -------------------------------------------------------------------------
 // make top and bottom 2 layers (in z-dir) have values of 1 in the cp
-// Sfield in order to simulate walls.
+// Sfield in order to simulate walls. Also zero out the concentration
+// fields in these regions
 // -------------------------------------------------------------------------
 
-void CHBDThinFilm::makeWalls()
+void CHBDThinFilm::initWalls()
 {
     // create wall on top
     for (int i=0; i<p.nx; i++)
@@ -202,5 +167,32 @@ void CHBDThinFilm::makeWalls()
                 cp.setValue(index,1.0);
                 c1.setValue(index,0.0);
                 c2.setValue(index,0.0);
+            }
+}
+
+
+
+// -------------------------------------------------------------------------
+// make top and bottom 2 layers (in z-dir) have values of 1 in the cp
+// Sfield in order to simulate walls.
+// -------------------------------------------------------------------------
+
+void CHBDThinFilm::mapWalls()
+{
+    // create wall on top
+    for (int i=0; i<p.nx; i++)
+        for (int j=0; j<p.ny; j++)
+            for (int k=p.nz-thickness; k<p.nz; k++)
+            {
+                int index = k+p.nz*j+p.nz*p.ny*i;
+                cp.setValue(index,1.0);
+            }
+    // create wall on bottom
+    for (int i=0; i<p.nx; i++)
+        for (int j=0; j<p.ny; j++)
+            for (int k=0; k<thickness; k++)
+            {
+                int index = k+p.nz*j+p.nz*p.ny*i;
+                cp.setValue(index,1.0);
             }
 }

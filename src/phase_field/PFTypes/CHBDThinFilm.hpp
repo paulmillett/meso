@@ -14,7 +14,8 @@ class CHBDThinFilm: public CHBD {
         virtual void updatePhaseField(); // override
 
     protected:
-        void makeWalls();
+        void initWalls();
+        void mapWalls();
         int thickness;
 
 };
