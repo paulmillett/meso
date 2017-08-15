@@ -8,6 +8,7 @@
 
 # include "PFTypes/CHBasic.hpp"
 # include "PFTypes/CHBD.hpp"
+# include "PFTypes/CHBDThinFilm.hpp"
 # include "PFTypes/TIPS.hpp"
 # include "PFTypes/TIPS2.hpp"
 # include "PFTypes/TIPS3.hpp"
@@ -36,6 +37,7 @@ PFBaseClass* PFBaseClass::PFFactory(const CommonParams& p,
 
     if (pf_type == "CHBasic") return new CHBasic(p,input_params);
     if (pf_type == "CHBD")    return new CHBD(p,input_params);
+    if (pf_type == "CHBDThinFilm")    return new CHBDThinFilm(p,input_params);
     if (pf_type == "TIPS")    return new TIPS(p,input_params);
     if (pf_type == "TIPS2")    return new TIPS2(p,input_params);
     if (pf_type == "TIPS3")    return new TIPS3(p,input_params);

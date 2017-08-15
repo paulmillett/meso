@@ -108,13 +108,13 @@ void PDParticles::initParticles()
 
 void PDParticles::updateParticles()
 {
-    velocityHalfKick();
-    updatePositions();
-    applyBoundaryConditions();
     zeroForces();
     pairwiseForces();
     auxiliaryForces();
     velocityHalfKick();
+    velocityHalfKick();
+    updatePositions();
+    applyBoundaryConditions();
 }
 
 
