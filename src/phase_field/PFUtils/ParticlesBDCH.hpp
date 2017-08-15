@@ -24,9 +24,12 @@ class ParticlesBDCH : public PDParticles {
 
     protected:
 
-        bool thinFilmGeometry;
+        string chbdType;
+        bool thinFilm;
         const CommonParams& p;
         double cap_str;
+        double eps,n;
+        int thickness;
         std::vector <double> fcap;
         std::vector <double> fcapSum;
         void auxiliaryForces();

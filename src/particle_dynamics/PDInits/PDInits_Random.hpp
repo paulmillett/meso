@@ -16,32 +16,37 @@
 
 class Random : public PDInits_BaseClass {
 
-// -------------------------------------------------------------------------
-// Private class members:
-// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Private class members:
+    // -------------------------------------------------------------------------
 
-private:
+    private:
 
-    int N;
-    double Lx, Ly, Lz;
-    double vscl;
-    double pradii;
-    vector<double>& r;
-    vector<double>& v;
-    vector<double>& rad;
-    double calc_separation_pbc(double, double, double);
+        int N;
+        int nx, ny, nz;
+        double dx,dy,dz;
+        double Lx, Ly, Lz;
+        double vscl;
+        double pradii;
+        string pfApp;
+        bool thinFilm;
+        int thickness;
+        vector<double>& r;
+        vector<double>& v;
+        vector<double>& rad;
+        double calc_separation_pbc(double, double, double);
 
-// -------------------------------------------------------------------------
-// Public class methods:
-// -------------------------------------------------------------------------
+        // -------------------------------------------------------------------------
+        // Public class methods:
+        // -------------------------------------------------------------------------
 
-public:
+    public:
 
-    Random(const GetPot& p, vector<double>&,
-                            vector<double>&,
-                            vector<double>&);
-    ~Random();
-    void icFunc();
+        Random(const GetPot& p, vector<double>&,
+                vector<double>&,
+                vector<double>&);
+        ~Random();
+        void icFunc();
 
 };
 

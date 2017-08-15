@@ -14,7 +14,7 @@ Dipole::Dipole(const GetPot& p, vector<double>& rin, vector<double>& vin,
     rcut = p("PDApp/inter_particle_forces/rcut",4.0);
     rcut2 = rcut*rcut;
     eps = p("PDApp/inter_particle_forces/eps",1.0);
-    n = p("PDApp/inter_particle_forces/n",-13.0);
+    n = p("PDApp/inter_particle_forces/n",13.0);
     Ex = p("PDApp/inter_particle_forces/Ex",0.0);
     Ey = p("PDApp/inter_particle_forces/Ey",0.0);
     Ez = p("PDApp/inter_particle_forces/Ez",1.0);

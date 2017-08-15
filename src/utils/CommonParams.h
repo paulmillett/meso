@@ -4,10 +4,10 @@
 
 struct CommonParams{
 
-   int nx,ny,nz;
-   int NX,NY,NZ;
-   int rank;
-   int np;
+   int nx,ny,nz;        // number of nodes in the LOCAL domain
+   int NX,NY,NZ;        // number of nodes in the GLOBAL domain
+   int rank;            // processor rank
+   int np;              // number of processors in the MPI communicator
    int nbrL;
    int nbrR;
    int xOff;
@@ -16,9 +16,9 @@ struct CommonParams{
    int kskip;
    int nstep;
    int numOutputs;
-   double dx,dy,dz;
-   double LX,LY,LZ;
-   double dt;
+   double dx,dy,dz;     // spacing between nodes
+   double LX,LY,LZ;     // domain dimensions in dx,dy,dz units
+   double dt;           // time step
 
 };
 
