@@ -20,6 +20,7 @@ ParticlesBDCH::ParticlesBDCH(const CommonParams& pin,
         thinFilm = false;
     // get the capillary force parameters:
     cap_str = input_params("PFApp/cap_str",1.0);
+    equilSteps = input_params("PDApp/equilSteps",0);
     // wall interaction parameters
     eps = input_params("PDApp/inter_particle_forces/eps",1.0);
     n = input_params("PDApp/inter_particle_forces/n",13.0);
@@ -39,6 +40,43 @@ ParticlesBDCH::ParticlesBDCH(const CommonParams& pin,
 ParticlesBDCH::~ParticlesBDCH()
 {
 
+}
+
+
+
+// -------------------------------------------------------------------------
+// Initializer:
+// -------------------------------------------------------------------------
+
+void ParticlesBDCH::initParticles()
+{
+    icObj->icFunc();
+    // if geometry in thin film, equilibrate particles before simulation
+    if (chbdType == "CHBDThinFilm" && p.rank == 0)
+    {
+        // temporarily turn off capillary forces
+        double realCap = cap_str;
+        cap_str = 0.0;
+        std::vector<int> steps;
+        double tke = calcTotalKinEnergy();
+        kinEnergy.push_back(tke);
+        steps.push_back(0);
+        for (int i=1; i<=equilSteps;i++)
+        {
+            updateParticles();
+            tke = calcTotalKinEnergy();
+            kinEnergy.push_back(tke);
+            steps.push_back(i);
+        }
+        // write the equilibration data to file
+        writeKinEnergy(steps,kinEnergy);
+        // put capillary strength back to what it used to be
+        cap_str = realCap;
+    }
+    current_step = 0;
+
+    // sync processors
+    MPI::COMM_WORLD.Barrier();
 }
 
 

@@ -20,6 +20,7 @@ class ParticlesBDCH : public PDParticles {
         ParticlesBDCH(const CommonParams&, const GetPot&);
         ~ParticlesBDCH();
         Sfield mapToGrid();
+        virtual void initParticles();
         void calcCapillaryForce(const Sfield&, const Sfield&, const Sfield&);
 
     protected:
@@ -30,6 +31,7 @@ class ParticlesBDCH : public PDParticles {
         double cap_str;
         double eps,n;
         int thickness;
+        int equilSteps;
         std::vector <double> fcap;
         std::vector <double> fcapSum;
         void auxiliaryForces();

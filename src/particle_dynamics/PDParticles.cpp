@@ -425,3 +425,39 @@ int PDParticles::cellIndex(int i, int j, int k)
    if (k >= ncellz) k -= ncellz;
    return i*ncellz*ncelly + j*ncellz + k;
 }
+
+
+
+// -------------------------------------------------------------------------
+// Function that calculates the total kinetic energy of the particles.
+// -------------------------------------------------------------------------
+
+double PDParticles::calcTotalKinEnergy()
+{
+    double ke = 0.0;
+    double v2;
+    for (int i=0; i<N;i++)
+    {
+        v2 = v[i*3]*v[i*3]+v[i*3+1]*v[i*3+1]+v[i*3+2]*v[i*3+2];
+        ke += 0.5*mass[i]*v2;
+    }
+    return ke;
+}
+
+
+
+// -------------------------------------------------------------------------
+// Function that writes the total kinetic energy of the particles to a
+// file.
+// -------------------------------------------------------------------------
+
+void PDParticles::writeKinEnergy(std::vector<int> steps,std::vector<double> kinEnergy)
+{
+    ofstream ke;
+    ke.open("equilibration.csv");
+    // write header
+    ke << "step,energy\n";
+    for (int i = 0; i<steps.size();i++)
+        ke << steps[i] << "," << kinEnergy[i] << "\n";
+    ke.close();
+}
