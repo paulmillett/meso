@@ -25,6 +25,7 @@
     density = 0.2387324     # particle density
     drag_coef = 3.0         # drag strength due to viscosity of medium
     bm_str = 5.0            # brownian motion strength
+    equilSteps = 2000       # number of steps to equilibrate the particles
     [./initial_condition]
         vscl = 0.0          # scale initial velocity
         rscl = 0.1          # noise strength in particle positions
@@ -56,5 +57,5 @@
     M = 1.0                 # binary mixture mobility
     cap_str = 0.3           # strength of capillary forces
     thickness = 2           # wall thickness
-    part_step_skip = 3      # number of particle steps per CH step
+    part_step_skip = 5      # number of particle steps per CH step
 []

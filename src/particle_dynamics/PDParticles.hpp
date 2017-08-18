@@ -34,6 +34,7 @@ class PDParticles {
         int ncell, nncells;
         int ncellx,ncelly,ncellz;
         bool flag2D;
+        bool outputForces;
         double density;
         double pradii;
         double bm_str, drag_coef;
@@ -44,6 +45,7 @@ class PDParticles {
         double cellWidth;
         double cellWidthx,cellWidthy,cellWidthz;
         std::vector <double> r,v,f;
+        std::vector <double> fbrn,fe,frp;
         std::vector <double> rad;
         std::vector <double> box;
         std::vector <double> mass;
@@ -63,6 +65,8 @@ class PDParticles {
         int cellIndex(int,int,int);
         double calcTotalKinEnergy();
         void writeKinEnergy(std::vector<int>,std::vector<double>);
+        void writeAllForces();
+        void writeForce(int step,std::vector<double>&,string);
 
 };
 

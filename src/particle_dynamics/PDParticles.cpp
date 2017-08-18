@@ -43,6 +43,7 @@ PDParticles::PDParticles(const CommonParams& p, const GetPot& input_params)
     density = input_params("PDApp/density",0.23873241463);
     drag_coef = input_params("PDApp/drag_coef",0.0);
     bm_str = input_params("PDApp/bm_str",0.0);
+    outputForces = input_params("PDApp/outputForces",0);
 
     //	---------------------------------------
     //	Establish vector dimensions:
@@ -58,6 +59,9 @@ PDParticles::PDParticles(const CommonParams& p, const GetPot& input_params)
             r.push_back(0.0);
             v.push_back(0.0);
             f.push_back(0.0);
+            fbrn.push_back(0.0);
+            fe.push_back(0.0);
+            frp.push_back(0.0);
         }
     }
 
@@ -260,6 +264,8 @@ void PDParticles::auxiliaryForces()
 void PDParticles::outputParticles()
 {
     writeVTKFile("particles",current_step);    
+    if (outputForces)
+        writeAllForces();
 }
 
 
@@ -460,4 +466,55 @@ void PDParticles::writeKinEnergy(std::vector<int> steps,std::vector<double> kinE
     for (int i = 0; i<steps.size();i++)
         ke << steps[i] << "," << kinEnergy[i] << "\n";
     ke.close();
+}
+
+
+
+// -------------------------------------------------------------------------
+// Function that writes the particle forces and magnitudes to a csv file.
+// -------------------------------------------------------------------------
+
+void PDParticles::writeAllForces()
+{
+    string fname = "netForce";
+    writeForce(current_step,f,fname);
+}
+
+
+
+// -------------------------------------------------------------------------
+// Function that writes the particle forces and magnitudes to a csv file.
+// -------------------------------------------------------------------------
+
+void PDParticles::writeForce(int step,std::vector<double>& fr,string name)
+{
+
+    // -----------------------------------
+    //	Define the file location and name:
+    // -----------------------------------
+
+    ofstream outfile;
+    std::stringstream filenamecombine;
+    filenamecombine << "vtkoutput/" << name << "_" << step << ".csv";
+    string filename = filenamecombine.str();
+    outfile.open(filename.c_str());
+
+    // -----------------------------------
+    //	write the file header
+    // -----------------------------------
+
+    outfile << "x,y,z,fx,fy,fz,mag\n";
+
+    // -----------------------------------
+    //	write force data
+    // -----------------------------------
+
+    double forceMag=0.0;
+    for (int i = 0; i < N; i++)
+    {
+        forceMag = sqrt(fr[i*3]*fr[i*3]+fr[i*3+1]*fr[i*3+1]+fr[i*3+2]*fr[i*3+2]);
+        outfile << r[i*3] << "," << r[i*3+1] << "," << r[i*3+2];
+        outfile << "," << fr[i*3] << "," << fr[i*3+1] << "," << fr[i*3+2];
+        outfile << "," << forceMag << "\n";
+    }
 }
