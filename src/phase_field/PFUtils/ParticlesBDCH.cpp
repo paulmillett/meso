@@ -291,3 +291,17 @@ bool ParticlesBDCH::inMyDomain(int i)
     else
         return false;
 }
+
+
+
+// -------------------------------------------------------------------------
+// Function that writes the particle forces and magnitudes to a csv file.
+// -------------------------------------------------------------------------
+
+void PDParticles::writeAllForces()
+{
+    string fname = "netForce";
+    writeForce(current_step,f,fname);
+    fname = "capForce";
+    writeForce(current_step,fcap,fname);
+}

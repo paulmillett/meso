@@ -65,7 +65,7 @@ class PDParticles {
         int cellIndex(int,int,int);
         double calcTotalKinEnergy();
         void writeKinEnergy(std::vector<int>,std::vector<double>);
-        void writeAllForces();
+        virtual void writeAllForces();
         void writeForce(int step,std::vector<double>&,string);
 
 };
