@@ -1,5 +1,9 @@
+/*
+ * CHBDThinFilm.cpp
+ * Copyright (C) 2017 joseph <joseph@JMC-WORKSTATION>
+ */
 
-# include "CHBD.hpp"
+#include "CHBDThinFilm.hpp"
 
 
 
@@ -7,35 +11,10 @@
 // Constructor:
 // -------------------------------------------------------------------------
 
-CHBD::CHBD(const CommonParams& pin,
-           const GetPot& input_params) : p(pin), c1(p), c2(p), cp(p),
-                                         particles(p,input_params),
-                                         k1(p), k2(p), k4(p)
+CHBDThinFilm::CHBDThinFilm(const CommonParams& pin,
+           const GetPot& input_params) : CHBD(pin,input_params)
 {
-
-    //	---------------------------------------
-    // create the FFTw plans:
-    //	---------------------------------------
-
-    nxyz = p.nx*p.ny*p.nz;
-    dummy = fftw_alloc_complex(nxyz);
-    p_forward  = fftw_mpi_plan_dft_3d(p.NX,p.NY,p.NZ,dummy,dummy,
-                 MPI_COMM_WORLD,FFTW_FORWARD,FFTW_MEASURE);
-    p_backward = fftw_mpi_plan_dft_3d(p.NX,p.NY,p.NZ,dummy,dummy,
-                 MPI_COMM_WORLD,FFTW_BACKWARD,FFTW_MEASURE);
-    fftw_free(dummy);
-
-    //	---------------------------------------
-    // set needed parameters:
-    //	---------------------------------------
-
-    co = input_params("PFApp/co",0.5);
-    w = input_params("PFApp/w",1.0);
-    M = input_params("PFApp/M",1.0);
-    kap = input_params("PFApp/kap",1.0);
-    part_step_skip = input_params("PFApp/part_step_skip",5);
-    eCH = input_params("PFApp/eCH",0.0);
-
+    thickness = input_params("PFApp/thickness",10);
 }
 
 
@@ -44,7 +23,7 @@ CHBD::CHBD(const CommonParams& pin,
 // Destructor:
 // -------------------------------------------------------------------------
 
-CHBD::~CHBD()
+CHBDThinFilm::~CHBDThinFilm()
 {
 
 }
@@ -55,7 +34,7 @@ CHBD::~CHBD()
 // Initialize phase-field method:
 // -------------------------------------------------------------------------
 
-void CHBD::initPhaseField()
+void CHBDThinFilm::initPhaseField()
 {
 
     //	---------------------------------------
@@ -80,6 +59,7 @@ void CHBD::initPhaseField()
         c1.setValue(i,val1);
         c2.setValue(i,val2);
     }
+    initWalls();
 
     //	---------------------------------------
     // initialize the fourier wave-vectors:
@@ -108,7 +88,7 @@ void CHBD::initPhaseField()
 // Step forward in time the phase-field method:
 // -------------------------------------------------------------------------
 
-void CHBD::updatePhaseField()
+void CHBDThinFilm::updatePhaseField()
 {
 
     //	---------------------------------------
@@ -126,6 +106,7 @@ void CHBD::updatePhaseField()
     // Update Cahn-Hilliard:
     //	---------------------------------------
 
+    mapWalls();
     Sfield dfdc1 = 12.0*w*(c1*c1*c1 - c1*c1 + c1*c2*c2 + c1*cp);
     Sfield dfdc2 = 12.0*w*(c2*c2*c2 - c2*c2 + c2*c1*c1 + c2*cp);
     c1.fft(p_forward);
@@ -160,60 +141,58 @@ void CHBD::updatePhaseField()
 
 
 // -------------------------------------------------------------------------
-// Write output for the phase-field method:
+// make top and bottom 2 layers (in z-dir) have values of 1 in the cp
+// Sfield in order to simulate walls. Also zero out the concentration
+// fields in these regions
 // -------------------------------------------------------------------------
 
-void CHBD::outputPhaseField()
+void CHBDThinFilm::initWalls()
 {
-    int iskip = p.iskip;
-    int jskip = p.jskip;
-    int kskip = p.kskip;
-    c1.writeVTKFile("c1",current_step,iskip,jskip,kskip);
-    c2.writeVTKFile("c2",current_step,iskip,jskip,kskip);
-    cp.writeVTKFile("cp",current_step,iskip,jskip,kskip);
-    if (p.rank == 0) 
-        particles.outputParticles();
+    // create wall on top
+    for (int i=0; i<p.nx; i++)
+        for (int j=0; j<p.ny; j++)
+            for (int k=p.nz-thickness; k<p.nz; k++)
+            {
+                int index = k+p.nz*j+p.nz*p.ny*i;
+                cp.setValue(index,1.0);
+                c1.setValue(index,0.0);
+                c2.setValue(index,0.0);
+            }
+    // create wall on bottom
+    for (int i=0; i<p.nx; i++)
+        for (int j=0; j<p.ny; j++)
+            for (int k=0; k<thickness; k++)
+            {
+                int index = k+p.nz*j+p.nz*p.ny*i;
+                cp.setValue(index,1.0);
+                c1.setValue(index,0.0);
+                c2.setValue(index,0.0);
+            }
 }
 
 
 
 // -------------------------------------------------------------------------
-// Calculate the wave-vector fields (k^1, k^2, k^4 for spectral solution):
+// make top and bottom 2 layers (in z-dir) have values of 1 in the cp
+// Sfield in order to simulate walls.
 // -------------------------------------------------------------------------
 
-void CHBD::calculateKfields()
+void CHBDThinFilm::mapWalls()
 {
-    Sfield kxf(p);
-    Sfield kyf(p);
-    Sfield kzf(p);
-    for (int i=0; i<p.nx; i++) {
-        for (int j=0; j<p.ny; j++) {
-            for (int k=0; k<p.nz; k++) {
-                int ii = i + p.xOff;
-                int jj = j;
-                int kk = k;
-                int ndx = i*p.NY*p.NZ + j*p.NZ + k;
-                double kx = ii*(2.0*M_PI/p.LX);
-                double ky = jj*(2.0*M_PI/p.LY);
-                double kz = kk*(2.0*M_PI/p.LZ);
-                if (ii > p.NX/2) kx = (ii-p.NX)*(2.0*M_PI/p.LX);
-                if (jj > p.NY/2) ky = (jj-p.NY)*(2.0*M_PI/p.LY);
-                if (kk > p.NZ/2) kz = (kk-p.NZ)*(2.0*M_PI/p.LZ);
-                double kx2 = kx*kx;
-                double ky2 = ky*ky;
-                double kz2 = kz*kz;
-                double kijk2 = kx2 + ky2 + kz2;
-                double kijk4 = kijk2*kijk2;
-                kxf.setValue(ndx,kx);
-                kyf.setValue(ndx,ky);
-                kzf.setValue(ndx,kz);
-                k2.setValue(ndx,kijk2);
-                k4.setValue(ndx,kijk4);
+    // create wall on top
+    for (int i=0; i<p.nx; i++)
+        for (int j=0; j<p.ny; j++)
+            for (int k=p.nz-thickness; k<p.nz; k++)
+            {
+                int index = k+p.nz*j+p.nz*p.ny*i;
+                cp.setValue(index,1.0);
             }
-        }
-    }
-    k1.setXValues(kxf);
-    k1.setYValues(kyf);
-    k1.setZValues(kzf);
-    kz = k1.getZValues();
+    // create wall on bottom
+    for (int i=0; i<p.nx; i++)
+        for (int j=0; j<p.ny; j++)
+            for (int k=0; k<thickness; k++)
+            {
+                int index = k+p.nz*j+p.nz*p.ny*i;
+                cp.setValue(index,1.0);
+            }
 }

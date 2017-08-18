@@ -37,22 +37,31 @@ PDParticles::PDParticles(const CommonParams& p, const GetPot& input_params)
     //	---------------------------------------
 
     N = input_params("PDApp/N",1);   // # of particles
-    rcut = input_params("PDApp/inter_particle_forces/rcut",4.0);
+    pradii = input_params("PDApp/pradii",1.0);
+    rcut = input_params("PDApp/inter_particle_forces/rcut",6.0*pradii);
     rcut2 = rcut*rcut;
-    drag_coef = input_params("PDApp/drag_coef",3.0);
-    bm_str = input_params("PDApp/bm_str",1.0);
+    density = input_params("PDApp/density",0.23873241463);
+    drag_coef = input_params("PDApp/drag_coef",0.0);
+    bm_str = input_params("PDApp/bm_str",0.0);
+    outputForces = input_params("PDApp/outputForces",0);
 
     //	---------------------------------------
     //	Establish vector dimensions:
     //	---------------------------------------
 
+    for (int i=0; i<N; i++) 
+        rad.push_back(pradii);
+    double vol;
     for (int i=0; i<N; i++) {
-        rad.push_back(1.0);
-        mass.push_back(1.0);
+        vol = 4.0/3.0*3.14159265359*rad[i]*rad[i]*rad[i];
+        mass.push_back(density*vol);
         for (int k=0; k<3; k++) {
             r.push_back(0.0);
             v.push_back(0.0);
             f.push_back(0.0);
+            fbrn.push_back(0.0);
+            fe.push_back(0.0);
+            frp.push_back(0.0);
         }
     }
 
@@ -103,13 +112,13 @@ void PDParticles::initParticles()
 
 void PDParticles::updateParticles()
 {
-    velocityHalfKick();
-    updatePositions();
-    applyBoundaryConditions();
     zeroForces();
     pairwiseForces();
     auxiliaryForces();
     velocityHalfKick();
+    velocityHalfKick();
+    updatePositions();
+    applyBoundaryConditions();
 }
 
 
@@ -240,7 +249,7 @@ void PDParticles::auxiliaryForces()
     for (int i=0; i<N; i++) {
         for (int j=0; j<3; j++) {
             double rr = (double)rand()/RAND_MAX;
-            f[i*3+j] += bm_str*2.0*(rr-0.5);
+            f[i*3+j] += sqrt(bm_str*drag_coef*2.0)*2.0*(rr-0.5);
             f[i*3+j] -= drag_coef*v[i*3+j];
         }
     }
@@ -255,6 +264,8 @@ void PDParticles::auxiliaryForces()
 void PDParticles::outputParticles()
 {
     writeVTKFile("particles",current_step);    
+    if (outputForces)
+        writeAllForces();
 }
 
 
@@ -419,4 +430,91 @@ int PDParticles::cellIndex(int i, int j, int k)
    if (k < 0) k += ncellz;
    if (k >= ncellz) k -= ncellz;
    return i*ncellz*ncelly + j*ncellz + k;
+}
+
+
+
+// -------------------------------------------------------------------------
+// Function that calculates the total kinetic energy of the particles.
+// -------------------------------------------------------------------------
+
+double PDParticles::calcTotalKinEnergy()
+{
+    double ke = 0.0;
+    double v2;
+    for (int i=0; i<N;i++)
+    {
+        v2 = v[i*3]*v[i*3]+v[i*3+1]*v[i*3+1]+v[i*3+2]*v[i*3+2];
+        ke += 0.5*mass[i]*v2;
+    }
+    return ke;
+}
+
+
+
+// -------------------------------------------------------------------------
+// Function that writes the total kinetic energy of the particles to a
+// file.
+// -------------------------------------------------------------------------
+
+void PDParticles::writeKinEnergy(std::vector<int> steps,std::vector<double> kinEnergy)
+{
+    ofstream ke;
+    ke.open("equilibration.csv");
+    // write header
+    ke << "step,energy\n";
+    for (int i = 0; i<steps.size();i++)
+        ke << steps[i] << "," << kinEnergy[i] << "\n";
+    ke.close();
+}
+
+
+
+// -------------------------------------------------------------------------
+// Function that writes the particle forces and magnitudes to a csv file.
+// -------------------------------------------------------------------------
+
+void PDParticles::writeAllForces()
+{
+    string fname = "netForce";
+    writeForce(current_step,f,fname);
+}
+
+
+
+// -------------------------------------------------------------------------
+// Function that writes the particle forces and magnitudes to a csv file.
+// -------------------------------------------------------------------------
+
+void PDParticles::writeForce(int step,std::vector<double>& fr,string name)
+{
+
+    // -----------------------------------
+    //	Define the file location and name:
+    // -----------------------------------
+
+    ofstream outfile;
+    std::stringstream filenamecombine;
+    filenamecombine << "vtkoutput/" << name << "_" << step << ".csv";
+    string filename = filenamecombine.str();
+    outfile.open(filename.c_str());
+
+    // -----------------------------------
+    //	write the file header
+    // -----------------------------------
+
+    outfile << "x,y,z,fx,fy,fz,mag\n";
+
+    // -----------------------------------
+    //	write force data
+    // -----------------------------------
+
+    double forceMag=0.0;
+    for (int i = 0; i < N; i++)
+    {
+        forceMag = sqrt(fr[i*3]*fr[i*3]+fr[i*3+1]*fr[i*3+1]+fr[i*3+2]*fr[i*3+2]);
+        outfile << r[i*3] << "," << r[i*3+1] << "," << r[i*3+2];
+        outfile << "," << fr[i*3] << "," << fr[i*3+1] << "," << fr[i*3+2];
+        outfile << "," << forceMag << "\n";
+    }
 }

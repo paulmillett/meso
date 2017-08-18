@@ -12,28 +12,37 @@ Lattice::Lattice(const GetPot& p, vector<double>& rin,
     r(rin), v(vin), rad(radin)
 {
     N = p("PDApp/N",1);
-    Lx = p("Domain/nx",5);
-    Ly = p("Domain/ny",5);
-    Lz = p("Domain/nz",5);
-    Lx *= p("Domain/dx",1.0);
-    Ly *= p("Domain/dy",1.0);
-    Lz *= p("Domain/dz",1.0);
+    pradii = p("PDApp/pradii",1.0);
+    nx = p("Domain/nx",5);
+    ny = p("Domain/ny",5);
+    nz = p("Domain/nz",5);
+    dx = p("Domain/dx",1.0);
+    dy = p("Domain/dy",1.0);
+    dz = p("Domain/dz",1.0);
     vscl = p("PDApp/initial_condition/vscl",0.0);
     rscl = p("PDApp/initial_condition/rscl",0.0);
     Nx = p("PDApp/initial_condition/Nx",1);
     Ny = p("PDApp/initial_condition/Ny",1);
     Nz = p("PDApp/initial_condition/Nz",1);
-    pradii = p("PDApp/initial_condition/pradii",1.0);
+
+    Lx = nx*dx;
+    Ly = ny*dy;
+    Lz = nz*dz;
+
+    // check to see if this is a thin film simulation
+    pfApp = p("PFApp/type","CHBD");
+    thickness = p("PFApp/thickness",2);
+    if (pfApp == "CHBDThinFilm")
+        thinFilm = true;
+    else
+        thinFilm = false;
+    if (thinFilm)
+        Lz -= 2.0*(dz*(double)thickness + pradii);
 
     // check to make sure basic usage assumption is satisfied
-    // make an error class later to clean up this code
     if (Nx*Ny*Nz != N)
     {
-        cout << "\n\n============\n";
-        cout << " E R R O R !\n";
-        cout << "============\n\n";
-        cout << "For the lattice initial condition Nx*Ny*Nz must equal N!\n\n";
-        throw 88;
+        throw runtime_error("For the lattice initial condition Nx*Ny*Nz must equal N!");
     }
 }
 
@@ -72,18 +81,19 @@ void Lattice::icFunc()
                 part_index = i*Ny*Nz+j*Nz+k;
                 xpos = ax/2.0 + (double)i*ax;
                 ypos = ay/2.0 + (double)j*ay;
-                zpos = az/2.0 + (double)k*az;
+                if (thinFilm)
+                {
+                    double zOffset = (double)thickness*dz + pradii;
+                    zpos = az/2.0 + (double)k*az + zOffset;
+                }
+                else
+                    zpos = az/2.0 + (double)k*az;
                 r[3*part_index+0] = xpos + rscl*r1*ax;
                 r[3*part_index+1] = ypos + rscl*r2*ay;
                 r[3*part_index+2] = zpos + rscl*r3*az;
 
             }
         }
-    }
-
-    // initialize particle radii:
-    for (int i=0; i<N; i++) {
-        rad[i] = pradii;
     }
 
     // initialize particle velocities:

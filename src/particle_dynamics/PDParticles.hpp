@@ -24,7 +24,7 @@ class PDParticles {
         void updateParticles();
         void outputParticles();
         void setTimeStep(int step) {current_step = step;}
-        void initParticles();
+        virtual void initParticles();
 
     protected:
 
@@ -34,6 +34,9 @@ class PDParticles {
         int ncell, nncells;
         int ncellx,ncelly,ncellz;
         bool flag2D;
+        bool outputForces;
+        double density;
+        double pradii;
         double bm_str, drag_coef;
         double dt;
         double dtover2;
@@ -42,9 +45,11 @@ class PDParticles {
         double cellWidth;
         double cellWidthx,cellWidthy,cellWidthz;
         std::vector <double> r,v,f;
+        std::vector <double> fbrn,fe,frp;
         std::vector <double> rad;
         std::vector <double> box;
         std::vector <double> mass;
+        std::vector <double> kinEnergy;
         std::vector <int> head,list;
         std::vector <int> cellmap;
         PDInits_BaseClass* icObj;
@@ -58,6 +63,10 @@ class PDParticles {
         void writeVTKFile(string,int);
         void setupParticleCells();
         int cellIndex(int,int,int);
+        double calcTotalKinEnergy();
+        void writeKinEnergy(std::vector<int>,std::vector<double>);
+        virtual void writeAllForces();
+        void writeForce(int step,std::vector<double>&,string);
 
 };
 

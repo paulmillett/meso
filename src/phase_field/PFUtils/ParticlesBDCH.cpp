@@ -11,8 +11,19 @@ ParticlesBDCH::ParticlesBDCH(const CommonParams& pin,
                              const GetPot& input_params) :
                              PDParticles(pin,input_params), p(pin)
 {
+    // check for thin film geometry
+    chbdType = input_params("PFApp/type","CHBD");
+    thickness = input_params("PFApp/thickness",2);
+    if (chbdType == "CHBDThinFilm")
+        thinFilm = true;
+    else
+        thinFilm = false;
     // get the capillary force parameters:
     cap_str = input_params("PFApp/cap_str",1.0);
+    equilSteps = input_params("PDApp/equilSteps",0);
+    // wall interaction parameters
+    eps = input_params("PDApp/inter_particle_forces/eps",1.0);
+    n = input_params("PDApp/inter_particle_forces/n",13.0);
     // vector dimensions:
     for (int i=0; i<3*N; i++) {
         fcap.push_back(0.0);
@@ -34,18 +45,69 @@ ParticlesBDCH::~ParticlesBDCH()
 
 
 // -------------------------------------------------------------------------
+// Initializer:
+// -------------------------------------------------------------------------
+
+void ParticlesBDCH::initParticles()
+{
+    icObj->icFunc();
+    // if geometry in thin film, equilibrate particles before simulation
+    if (chbdType == "CHBDThinFilm" && p.rank == 0)
+    {
+        // temporarily turn off capillary forces
+        double realCap = cap_str;
+        cap_str = 0.0;
+        std::vector<int> steps;
+        double tke = calcTotalKinEnergy();
+        kinEnergy.push_back(tke);
+        steps.push_back(0);
+        for (int i=1; i<=equilSteps;i++)
+        {
+            updateParticles();
+            tke = calcTotalKinEnergy();
+            kinEnergy.push_back(tke);
+            steps.push_back(i);
+        }
+        // write the equilibration data to file
+        writeKinEnergy(steps,kinEnergy);
+        // put capillary strength back to what it used to be
+        cap_str = realCap;
+    }
+    current_step = 0;
+
+    // sync processors
+    MPI::COMM_WORLD.Barrier();
+}
+
+
+
+// -------------------------------------------------------------------------
 // Auxiliary forces:
 // -------------------------------------------------------------------------
 
 void ParticlesBDCH::auxiliaryForces()
 {
-
     for (int i=0; i<N; i++) {
         for (int j=0; j<3; j++) {
             double rr = (double)rand()/RAND_MAX;
-            f[i*3+j] += bm_str*2.0*(rr-0.5);
+            f[i*3+j] += sqrt(drag_coef*bm_str*2.0)*2.0*(rr-0.5);
             f[i*3+j] -= drag_coef*v[i*3+j];
             f[i*3+j] += fcap[i*3+j];
+        }
+    }
+    if (thinFilm)
+    {
+        double zTop = (double)p.NZ*p.dx-p.dx*(double)thickness;
+        for (int i=0; i<N; i++)
+        {
+            // interact with top wall
+            double dz = zTop - r[i*3+2];
+            if (dz <= rcut)
+                f[i*3+2] -= (n-1.0)*eps*pow(2.0*rad[i]/dz,n);
+            // interact with bottom wall
+            dz = r[i*3+2] - p.dx*(double)thickness;
+            if (dz <= rcut)
+                f[i*3+2] += (n-1.0)*eps*pow(2.0*rad[i]/dz,n);
         }
     }
 }
@@ -228,4 +290,18 @@ bool ParticlesBDCH::inMyDomain(int i)
         return true;
     else
         return false;
+}
+
+
+
+// -------------------------------------------------------------------------
+// Function that writes the particle forces and magnitudes to a csv file.
+// -------------------------------------------------------------------------
+
+void PDParticles::writeAllForces()
+{
+    string fname = "netForce";
+    writeForce(current_step,f,fname);
+    fname = "capForce";
+    writeForce(current_step,fcap,fname);
 }

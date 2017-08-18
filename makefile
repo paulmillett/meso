@@ -16,13 +16,7 @@ LFLAGS = -lfftw3_mpi -lfftw3 -lm
 # Source
 #################
 
-CPP_FILES = $(wildcard src/cahn_hilliard/finite_difference/*.cpp \
-						src/cahn_hilliard/finite_difference/*/*.cpp \
-						src/cahn_hilliard/spectral/*.cpp \
-						src/cahn_hilliard/spectral/*/*.cpp \
-						src/brownian_dynamics/*.cpp \
-						src/brownian_dynamics/*/*.cpp \
-						src/lattice_boltzmann/*.cpp \
+CPP_FILES = $(wildcard	src/lattice_boltzmann/*.cpp \
 						src/phase_field/*.cpp \
 						src/phase_field/*/*.cpp \
 						src/particle_dynamics/*.cpp \

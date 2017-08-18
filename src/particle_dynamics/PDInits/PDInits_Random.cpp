@@ -8,18 +8,32 @@
 // -------------------------------------------------------------------------
 
 Random::Random(const GetPot& p, vector<double>& rin,
-           vector<double>& vin, vector<double>& radin) :
-           r(rin), v(vin), rad(radin)
+        vector<double>& vin, vector<double>& radin) :
+    r(rin), v(vin), rad(radin)
 {
     N = p("PDApp/N",1);
-    Lx = p("Domain/nx",5);
-    Ly = p("Domain/ny",5);
-    Lz = p("Domain/nz",5);
-    Lx *= p("Domain/dx",1.0);
-    Ly *= p("Domain/dy",1.0);
-    Lz *= p("Domain/dz",1.0);
+    nx = p("Domain/nx",5);
+    ny = p("Domain/ny",5);
+    nz = p("Domain/nz",5);
+    dx = p("Domain/dx",1.0);
+    dy = p("Domain/dy",1.0);
+    dz = p("Domain/dz",1.0);
     vscl = p("PDApp/initial_condition/vscl",0.0);
-    pradii = p("PDApp/initial_condition/pradii",1.0);
+    pradii = p("PDApp/pradii",1.0);
+
+    Lx = nx*dx;
+    Ly = ny*dy;
+    Lz = nz*dz;
+
+    // check to see if this is a thin film simulation
+    pfApp = p("PFApp/type","CHBD");
+    thickness = p("PFApp/thickness",2);
+    if (pfApp == "CHBDThinFilm")
+        thinFilm = true;
+    else
+        thinFilm = false;
+    if (thinFilm)
+        Lz -= 2.0*(dz*(double)thickness + 2.0*pradii);
 }
 
 
@@ -50,7 +64,10 @@ void Random::icFunc()
             // get a random position
             r1 = (double)rand()/RAND_MAX*Lx;
             r2 = (double)rand()/RAND_MAX*Ly;
-            r3 = (double)rand()/RAND_MAX*Lz;
+            if (thinFilm)
+                r3 = (double)rand()/RAND_MAX*Lz + dz*(double)thickness + 2.0*pradii;
+            else
+                r3 = (double)rand()/RAND_MAX*Lz;
 
             // assign position
             r[i*3 + 0] = r1;
@@ -63,18 +80,13 @@ void Random::icFunc()
                 double dry = calc_separation_pbc(r[3*i + 1],r[3*k + 1],Ly);
                 double drz = calc_separation_pbc(r[3*i + 2],r[3*k + 2],Lz);
                 double rij = sqrt(drx*drx+dry*dry+drz*drz);
-                if (rij < 3.0*pradii) // assumes all particles have same radius
+                if (rij < 3.0*(rad[i]+rad[k])/2.0) 
                 {
                     tooClose = true;
                     break;
                 }
             }
         }
-    }
-
-    // initialize particle radii:
-    for (int i=0; i<N; i++) {
-        rad[i] = pradii;
     }
 
     // initialize particle velocities:

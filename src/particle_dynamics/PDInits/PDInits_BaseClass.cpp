@@ -1,6 +1,7 @@
 
 # include "PDInits_BaseClass.hpp"
 # include <string>
+# include <exception>
 
 // -------------------------------------------------------------------------
 // List of header files that need to be included...
@@ -30,5 +31,6 @@ PDInits_BaseClass* PDInits_BaseClass::PDInitFactory(const GetPot& p,
    if (ic_type == "cubicLattice") return new CubicLattice(p,r,v,rad);
    if (ic_type == "random") return new Random(p,r,v,rad);
    if (ic_type == "lattice") return new Lattice(p,r,v,rad);
+   throw runtime_error("Particle initial condition type not recognized!");
 
 }

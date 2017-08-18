@@ -5,13 +5,6 @@
 // List of header files that need to be included...
 // -------------------------------------------------------------------------
 
-// Cahn-Hilliard classes:
-# include "../cahn_hilliard/finite_difference/CHApp.hpp"
-# include "../cahn_hilliard/spectral/CHFFTApp.hpp"
-
-// Brownian Dynamics classes:
-# include "../brownian_dynamics/BDApp.hpp"
-
 // Lattice-Boltzmann classes:
 # include "../lattice_boltzmann/LBApp.hpp"
 
@@ -20,9 +13,6 @@
 
 // Particle-Dynamics classes:
 # include "../particle_dynamics/PDApp.hpp"
-
-// FIPI (Fast Interface-Particle Interactions) classes:
-//# include "../fipi/FIPIApp.hpp"
 
 // -------------------------------------------------------------------------
 // Factory method: this function returns an object determined
@@ -43,9 +33,6 @@ MesoBase* MesoBase::MesoObjectFactory(string specifier)
    // return the requested object:
    // -----------------------------------
 
-   if (specifier == "CHApp/") return new CHApp(InParams);
-   if (specifier == "CHFFTApp/") return new CHFFTApp(InParams);
-   if (specifier == "BDApp/") return new BDApp(InParams);
    if (specifier == "LBApp/") return new LBApp(InParams);
    if (specifier == "PFApp/") return new PFApp(InParams);
    if (specifier == "PDApp/") return new PDApp(InParams);

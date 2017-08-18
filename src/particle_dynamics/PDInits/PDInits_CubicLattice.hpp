@@ -23,7 +23,6 @@ private:
    int N;
    double Lx, Ly, Lz;
    double vscl;
-   double pradii;
    double rscl;
    vector<double>& r;
    vector<double>& v;
