@@ -101,6 +101,20 @@ PDParticles::~PDParticles()
 void PDParticles::initParticles()
 {
     icObj->icFunc();
+    // equilibrate particles
+    std::vector<int> steps;
+    double tke = calcTotalKinEnergy();
+    kinEnergy.push_back(tke);
+    steps.push_back(0);
+    for (int i=1; i<=equilSteps;i++)
+    {
+        updateParticles();
+        tke = calcTotalKinEnergy();
+        kinEnergy.push_back(tke);
+        steps.push_back(i);
+    }
+    // write the equilibration data to file
+    writeKinEnergy(steps,kinEnergy);
     current_step = 0;
 }
 

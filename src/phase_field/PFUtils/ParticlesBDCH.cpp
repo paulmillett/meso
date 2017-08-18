@@ -51,8 +51,8 @@ ParticlesBDCH::~ParticlesBDCH()
 void ParticlesBDCH::initParticles()
 {
     icObj->icFunc();
-    // if geometry in thin film, equilibrate particles before simulation
-    if (chbdType == "CHBDThinFilm" && p.rank == 0)
+    // equilibrate particles
+    if (p.rank == 0)
     {
         // temporarily turn off capillary forces
         double realCap = cap_str;
@@ -298,7 +298,7 @@ bool ParticlesBDCH::inMyDomain(int i)
 // Function that writes the particle forces and magnitudes to a csv file.
 // -------------------------------------------------------------------------
 
-void PDParticles::writeAllForces()
+void ParticlesBDCH::writeAllForces()
 {
     string fname = "netForce";
     writeForce(current_step,f,fname);

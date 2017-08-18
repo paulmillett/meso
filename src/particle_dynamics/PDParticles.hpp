@@ -33,6 +33,7 @@ class PDParticles {
         int current_step;
         int ncell, nncells;
         int ncellx,ncelly,ncellz;
+        int equilSteps;
         bool flag2D;
         bool outputForces;
         double density;
