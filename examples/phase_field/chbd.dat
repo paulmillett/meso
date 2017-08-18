@@ -24,7 +24,8 @@
     pradii = 5.0            # particle radius
     density = 0.23          # particle density
     drag_coef = 3.0         # drag strength due to viscosity of medium
-    bm_str = 0.1            # brownian motion strength
+    bm_str = 3.0            # brownian motion strength
+    equilSteps = 2000       # number of steps to equilibrate the particles
     [./initial_condition]
         vscl = 0.0          # scale initial velocity
         rscl = 0.1          # noise strength in particle positions

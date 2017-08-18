@@ -31,12 +31,12 @@ class ParticlesBDCH : public PDParticles {
         double cap_str;
         double eps,n;
         int thickness;
-        int equilSteps;
         std::vector <double> fcap;
         std::vector <double> fcapSum;
         void auxiliaryForces();
         bool isMyParticle(double,int);
         bool inMyDomain(int);
+        virtual void writeAllForces();
 
 };
 
