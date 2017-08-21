@@ -44,6 +44,7 @@ PDParticles::PDParticles(const CommonParams& p, const GetPot& input_params)
     drag_coef = input_params("PDApp/drag_coef",0.0);
     bm_str = input_params("PDApp/bm_str",0.0);
     outputForces = input_params("PDApp/outputForces",0);
+    equilSteps = input_params("PDApp/equilSteps",0);
 
     //	---------------------------------------
     //	Establish vector dimensions:
