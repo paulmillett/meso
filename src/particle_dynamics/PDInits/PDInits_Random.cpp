@@ -33,7 +33,7 @@ Random::Random(const GetPot& p, vector<double>& rin,
     else
         thinFilm = false;
     if (thinFilm)
-        Lz -= 2.0*(dz*(double)thickness + 2.0*pradii);
+        Lz -= 2.0*(dz*(double)thickness + 1.5*pradii);
 }
 
 
@@ -65,7 +65,7 @@ void Random::icFunc()
             r1 = (double)rand()/RAND_MAX*Lx;
             r2 = (double)rand()/RAND_MAX*Ly;
             if (thinFilm)
-                r3 = (double)rand()/RAND_MAX*Lz + dz*(double)thickness + 2.0*pradii;
+                r3 = (double)rand()/RAND_MAX*Lz + dz*(double)thickness + 1.5*pradii;
             else
                 r3 = (double)rand()/RAND_MAX*Lz;
 

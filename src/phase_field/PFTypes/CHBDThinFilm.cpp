@@ -14,7 +14,7 @@
 CHBDThinFilm::CHBDThinFilm(const CommonParams& pin,
            const GetPot& input_params) : CHBD(pin,input_params)
 {
-    thickness = input_params("PFApp/thickness",10);
+    thickness = input_params("PFApp/thickness",1);
 }
 
 

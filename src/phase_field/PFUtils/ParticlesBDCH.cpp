@@ -13,17 +13,17 @@ ParticlesBDCH::ParticlesBDCH(const CommonParams& pin,
 {
     // check for thin film geometry
     chbdType = input_params("PFApp/type","CHBD");
-    thickness = input_params("PFApp/thickness",2);
+    thickness = input_params("PFApp/thickness",1);
     if (chbdType == "CHBDThinFilm")
         thinFilm = true;
     else
         thinFilm = false;
     // get the capillary force parameters:
     cap_str = input_params("PFApp/cap_str",1.0);
-    equilSteps = input_params("PDApp/equilSteps",2000);
+    equilSteps = input_params("PDApp/equilSteps",0);
     // wall interaction parameters
     eps = input_params("PDApp/inter_particle_forces/eps",1.0);
-    n = input_params("PDApp/inter_particle_forces/n",13.0);
+    n = input_params("PDApp/inter_particle_forces/n",7.0);
     // vector dimensions:
     for (int i=0; i<3*N; i++) {
         fcap.push_back(0.0);
@@ -97,7 +97,7 @@ void ParticlesBDCH::auxiliaryForces()
     }
     if (thinFilm)
     {
-        double zTop = (double)p.NZ*p.dx-p.dx*(double)thickness;
+        double zTop = (double)p.NZ*p.dx + (pradii-p.dx*(double)thickness);
         for (int i=0; i<N; i++)
         {
             // interact with top wall
@@ -105,7 +105,7 @@ void ParticlesBDCH::auxiliaryForces()
             if (dz <= rcut)
                 f[i*3+2] -= (n-1.0)*eps*pow(2.0*rad[i]/dz,n);
             // interact with bottom wall
-            dz = r[i*3+2] - p.dx*(double)thickness;
+            dz = r[i*3+2] + (pradii - p.dx*(double)thickness);
             if (dz <= rcut)
                 f[i*3+2] += (n-1.0)*eps*pow(2.0*rad[i]/dz,n);
         }
