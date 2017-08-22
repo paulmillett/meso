@@ -56,6 +56,6 @@
     kap = 0.5               # free energy interface parameter
     M = 1.0                 # binary mixture mobility
     cap_str = 0.3           # strength of capillary forces
-    thickness = 2           # wall thickness
+    thickness = 1           # wall thickness
     part_step_skip = 5      # number of particle steps per CH step
 []

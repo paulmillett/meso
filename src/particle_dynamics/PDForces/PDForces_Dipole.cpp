@@ -116,3 +116,34 @@ void Dipole::cross(double (&a)[3], double(&b)[3],double (&crs)[3])
     crs[1] = a[2]*b[0]-b[2]*a[0];
     crs[2] = a[0]*b[1]-b[0]*a[1];
 }
+
+
+// ------------------------------------------------------------
+// sets the appropriate parameters for particle equilibration.
+// ------------------------------------------------------------
+
+void Dipole::equilOn()
+{
+    // save the input file values of the E-field
+    eqEx = Ex;
+    eqEy = Ey;
+    eqEz = Ez;
+
+    // turn off the E-field for equilibration
+    Ex = 0.0;
+    Ey = 0.0;
+    Ez = 0.0;
+}
+
+
+// ------------------------------------------------------------
+// resets parameters after particle equilibration.
+// ------------------------------------------------------------
+
+void Dipole::equilOff()
+{
+    // reset E-field values to input file values
+    Ex = eqEx;
+    Ey = eqEy;
+    Ez = eqEz;
+}

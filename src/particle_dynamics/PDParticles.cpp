@@ -102,11 +102,20 @@ PDParticles::~PDParticles()
 void PDParticles::initParticles()
 {
     icObj->icFunc();
+
+    // --------------------------------
     // equilibrate particles
+    // --------------------------------
+
     std::vector<int> steps;
     double tke = calcTotalKinEnergy();
     kinEnergy.push_back(tke);
     steps.push_back(0);
+
+    // turn on equilibration particle interactions
+    fijObj->equilOn();
+
+    // perform the equilibration steps
     for (int i=1; i<=equilSteps;i++)
     {
         updateParticles();
@@ -114,6 +123,10 @@ void PDParticles::initParticles()
         kinEnergy.push_back(tke);
         steps.push_back(i);
     }
+
+    // turn off equilibration particle interactions
+    fijObj->equilOff();
+
     // write the equilibration data to file
     writeKinEnergy(steps,kinEnergy);
     current_step = 0;

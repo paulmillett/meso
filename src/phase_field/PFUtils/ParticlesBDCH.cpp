@@ -51,7 +51,11 @@ ParticlesBDCH::~ParticlesBDCH()
 void ParticlesBDCH::initParticles()
 {
     icObj->icFunc();
+
+    // --------------------------------
     // equilibrate particles
+    // --------------------------------
+
     if (p.rank == 0)
     {
         // temporarily turn off capillary forces
@@ -61,6 +65,11 @@ void ParticlesBDCH::initParticles()
         double tke = calcTotalKinEnergy();
         kinEnergy.push_back(tke);
         steps.push_back(0);
+
+        // turn on equilibration particle interactions
+        fijObj->equilOn();
+
+        // perform the equilibration steps
         for (int i=1; i<=equilSteps;i++)
         {
             updateParticles();
@@ -68,8 +77,13 @@ void ParticlesBDCH::initParticles()
             kinEnergy.push_back(tke);
             steps.push_back(i);
         }
+
+        // turn off equilibration particle interactions
+        fijObj->equilOff();
+
         // write the equilibration data to file
         writeKinEnergy(steps,kinEnergy);
+
         // put capillary strength back to what it used to be
         cap_str = realCap;
     }
