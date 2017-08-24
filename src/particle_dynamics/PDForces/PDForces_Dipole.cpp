@@ -28,6 +28,12 @@ Dipole::Dipole(const GetPot& p, vector<double>& rin, vector<double>& vin,
     edir[0] = Ex/Emag;
     edir[1] = Ey/Emag;
     edir[2] = Ez/Emag;
+    // check if using CHBDThinFilm
+    string chbdtype = p("PFApp/type","None");
+    if (chbdtype == "CHBDThinFilm")
+        thinFilm = true;
+    else
+        thinFilm = false;
 }
 
 
@@ -53,7 +59,11 @@ void Dipole::fijFunc(int i, int j)
     for (int k=0; k<3; k++) 
     {
         rij[k] = r[i*3+k] - r[j*3+k];
-        rij[k] -= round(rij[k]/box[k])*box[k];  // <-- pbc's
+        // apply pbc's, not in z-dir if thin film
+        if (!thinFilm)
+            rij[k] -= round(rij[k]/box[k])*box[k]; //pbc all dir
+        else if ( k < 2)
+            rij[k] -= round(rij[k]/box[k])*box[k]; //pbc all minus z
         rij2 += rij[k]*rij[k];
     }
     // if inside the cutoff radius then calculate ij pair interaction

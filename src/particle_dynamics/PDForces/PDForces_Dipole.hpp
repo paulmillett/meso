@@ -37,6 +37,7 @@ class Dipole : public PDForces_BaseClass {
         double rij2;
         double rcut,rcut2;
         double box[3];
+        bool thinFilm;
         vector<double>& r;
         vector<double>& v;
         vector<double>& f;
