@@ -1,5 +1,5 @@
 
-# include "TIPS4.hpp"
+# include "TIPSiso.hpp"
 # include <iostream>
 # include <fstream>
 
@@ -9,8 +9,8 @@
 // Constructor:
 // -------------------------------------------------------------------------
 
-TIPS4::TIPS4(const CommonParams& pin,
-             const GetPot& input_params) : p(pin), c(p)
+TIPSiso::TIPSiso(const CommonParams& pin,
+                 const GetPot& input_params) : p(pin), c(p)
 {
 
     // ---------------------------------------
@@ -35,19 +35,6 @@ TIPS4::TIPS4(const CommonParams& pin,
     Tend = input_params("PFApp/Tend",273.0);
     numAnalysisOutputs = input_params("PFApp/numAnalysisOutputs",0);
 
-    // ---------------------------------------
-    // create analysis folder:
-    // ---------------------------------------
-
-    if (p.rank == 0) {
- 	 	std::system("mkdir -p analysis");      // make analysis directory
- 	 	std::system("exec rm -rf analysis/*"); // remove any existing files
- 	}
-
-    outAnalysisInterval = 0;
-    if (numAnalysisOutputs != 0) outAnalysisInterval = p.nstep/numAnalysisOutputs;
-    if (numAnalysisOutputs == 0) outAnalysisInterval = p.nstep+1;
-
 }
 
 
@@ -56,7 +43,7 @@ TIPS4::TIPS4(const CommonParams& pin,
 // Destructor:
 // -------------------------------------------------------------------------
 
-TIPS4::~TIPS4()
+TIPSiso::~TIPSiso()
 {
 
 }
@@ -67,7 +54,7 @@ TIPS4::~TIPS4()
 // Initialize phase-field method:
 // -------------------------------------------------------------------------
 
-void TIPS4::initPhaseField()
+void TIPSiso::initPhaseField()
 {
 
     //	---------------------------------------
@@ -101,7 +88,7 @@ void TIPS4::initPhaseField()
 // Step forward in time the phase-field method:
 // -------------------------------------------------------------------------
 
-void TIPS4::updatePhaseField()
+void TIPSiso::updatePhaseField()
 {
 
     // ---------------------------------------
@@ -116,8 +103,7 @@ void TIPS4::updatePhaseField()
     // calculate chemical potential & mobility
     // ---------------------------------------
 
-    //c.updatePBC();
-    c.updatePBCNoFluxZ();
+    c.updatePBC();
     MPI::COMM_WORLD.Barrier();
 
     SfieldFD mu(p);
@@ -145,10 +131,8 @@ void TIPS4::updatePhaseField()
     // update CH equation:
     // ---------------------------------------
 
-    //mu.updatePBC();
-    //mob.updatePBC();
-    mu.updatePBCNoFluxZ();
-    mob.updatePBCNoFluxZ();
+    mu.updatePBC();
+    mob.updatePBC();    
     MPI::COMM_WORLD.Barrier();
 
     c += p.dt*mu.Laplacian(mob);
@@ -168,14 +152,6 @@ void TIPS4::updatePhaseField()
         }
     }
 
-    // ---------------------------------------
-    // Calculate average droplet size:
-    // ---------------------------------------
-
-    if (current_step == 1 || current_step%outAnalysisInterval == 0) {
-        averageDropletSize();
-    }
-
 }
 
 
@@ -184,78 +160,10 @@ void TIPS4::updatePhaseField()
 // Write output for the phase-field method:
 // -------------------------------------------------------------------------
 
-void TIPS4::outputPhaseField()
+void TIPSiso::outputPhaseField()
 {
     int iskip = p.iskip;
     int jskip = p.jskip;
     int kskip = p.kskip;
     c.writeVTKFile("c",current_step,iskip,jskip,kskip);
-}
-
-
-
-// -------------------------------------------------------------------------
-// Calculate averge droplet size:
-// -------------------------------------------------------------------------
-
-void TIPS4::averageDropletSize()
-{
-
-    // ---------------------------------------
-    // Loop over grid to do some counting:
-    // ---------------------------------------
-
-    int ndropsTot = 0;
-    int npoints = 0;
-
-    for (int i=1; i<nx+1; i++) {
-
-        // data for one column
-        int ndrops = 0;
-        bool indrop = false;
-
-        // run along one column
-        for (int j=1; j<ny+1; j++) {
-            int ndx = i*deli + j*delj + 1*delk;
-            double cc = c.getValue(ndx);
-            // see if this point is inside a droplet:
-            if (cc < 0.15) {
-                if (!indrop) ndrops++;
-                indrop = true;
-                npoints++;
-            } else {
-                indrop = false;
-            }
-        }
-
-        // keep running tally of # of drops
-        ndropsTot += ndrops;
-
-    }
-
-    // ---------------------------------------
-    // Collect information to rank=0:
-    // ---------------------------------------
-
-    int ndropsGlobal = 0;
-    int npointsGlobal = 0;
-    MPI::COMM_WORLD.Reduce(&ndropsTot,&ndropsGlobal,1,MPI_INT,MPI_SUM,0);
-    MPI::COMM_WORLD.Reduce(&npoints,&npointsGlobal,1,MPI_INT,MPI_SUM,0);
-
-    // ---------------------------------------
-    // Output:
-    // ---------------------------------------
-
-    if (p.rank == 0) {
-        // calculate average diameter
-        int aveDropNum = ndropsGlobal/p.np;
-        double aveDropSize = double(npointsGlobal)/double(aveDropNum);
-        double aveDropDiam = 4*sqrt(aveDropSize)/3.14;
-        if (ndropsGlobal == 0) aveDropDiam = 0.0;
-        // write to file
-        ofstream outfile;
-        outfile.open("analysis/drop_size",std::ios_base::app);
-        outfile << current_step*p.dt << " " << aveDropDiam << endl;
-    }
-
 }
