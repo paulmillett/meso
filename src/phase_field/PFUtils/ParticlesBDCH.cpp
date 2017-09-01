@@ -20,7 +20,7 @@ ParticlesBDCH::ParticlesBDCH(const CommonParams& pin,
         thinFilm = false;
     // get the capillary force parameters:
     cap_str = input_params("PFApp/cap_str",1.0);
-    equilSteps = input_params("PDApp/equilSteps",0);
+    equilSteps = input_params("PDApp/equilSteps",2000);
     // wall interaction parameters
     eps = input_params("PDApp/inter_particle_forces/eps",1.0);
     n = input_params("PDApp/inter_particle_forces/n",13.0);
