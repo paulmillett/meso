@@ -28,6 +28,7 @@ private:
     double A;
     double Tstart;
     double Tend;
+    double noiseStr;
 
 public:
 

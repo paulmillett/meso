@@ -28,6 +28,7 @@ private:
     double A;
     double Tbath;
     double Tinit;
+    double noiseStr;
 
 public:
 

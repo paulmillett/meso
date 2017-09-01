@@ -34,6 +34,7 @@ TIPSbath::TIPSbath(const CommonParams& pin,
     Tbath = input_params("PFApp/Tbath",273.0);
     Tinit = input_params("PFApp/Tinit",273.0);
     numAnalysisOutputs = input_params("PFApp/numAnalysisOutputs",0);
+    noiseStr = input_params("PFApp/noiseStr",0.1);
 
 }
 
@@ -141,7 +142,7 @@ void TIPSbath::updatePhaseField()
             for (int k=1; k<nz+1; k++) {
                 int ndx = i*deli + j*delj + k*delk;
                 double r = (double)rand()/RAND_MAX;
-                double val = 0.1*(r-0.5);
+                double val = noiseStr*(r-0.5);
                 c.addValue(ndx,p.dt*val);
             }
         }
