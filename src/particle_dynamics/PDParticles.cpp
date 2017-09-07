@@ -329,13 +329,25 @@ void PDParticles::writeVTKFile(string tagname, int tagnum)
     outfile << "POINTS" << d << N << d << " float" << endl;
 
     // -----------------------------------
-    //	Write the data:
+    //	Write the position data:
     // NOTE: x-data increases fastest,
     //       then y-data, then z-data
     // -----------------------------------
 
     for (int i=0; i<N; i++) {
         outfile << fixed << setprecision(3) << r[i*3+0] << d << r[i*3+1] << d << r[i*3+2] << endl;
+    }
+
+    // -----------------------------------
+    //	write the radius data
+    // -----------------------------------
+
+    outfile << "POINT_DATA\t" << d << N << endl;
+    outfile << "SCALARS radius float\n";
+    outfile << "LOOKUP_TABLE default\n";
+
+    for (int i=0; i<N; i++) {
+        outfile << fixed << setprecision(3) << rad[i] << endl;
     }
 
     // -----------------------------------
