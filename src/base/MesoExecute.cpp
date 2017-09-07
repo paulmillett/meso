@@ -93,6 +93,7 @@ void MesoExecute::createMesoObjects()
 
    for (int i=0; i<mesoapps.size(); i++) {
       mesoapps[i]->initSystem();
+      mesoapps[i]->writeOutput(0);
    }
 
 }
@@ -140,7 +141,7 @@ void MesoExecute::executeMesoSimulation()
       // write output for each app:
       // --------------------------------
 
-      if (step == 1 || step%outInterval == 0) {
+      if (step%outInterval == 0) {
          for (int i=0; i<mesoapps.size(); i++) {
             mesoapps[i]->writeOutput(step);
          }
