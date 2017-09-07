@@ -1,5 +1,5 @@
 
-# include "TIPS4.hpp"
+# include "TIPSbath.hpp"
 # include <iostream>
 # include <fstream>
 
@@ -9,8 +9,8 @@
 // Constructor:
 // -------------------------------------------------------------------------
 
-TIPS4::TIPS4(const CommonParams& pin,
-             const GetPot& input_params) : p(pin), c(p)
+TIPSbath::TIPSbath(const CommonParams& pin,
+                   const GetPot& input_params) : p(pin), c(p)
 {
 
     // ---------------------------------------
@@ -31,22 +31,10 @@ TIPS4::TIPS4(const CommonParams& pin,
     beta = input_params("PFApp/beta",1.0);
     N = input_params("PFApp/N",100.0);
     A = input_params("PFApp/A",1.0);
-    Tstart = input_params("PFApp/Tstart",273.0);
-    Tend = input_params("PFApp/Tend",273.0);
+    Tbath = input_params("PFApp/Tbath",273.0);
+    Tinit = input_params("PFApp/Tinit",273.0);
     numAnalysisOutputs = input_params("PFApp/numAnalysisOutputs",0);
-
-    // ---------------------------------------
-    // create analysis folder:
-    // ---------------------------------------
-
-    if (p.rank == 0) {
- 	 	std::system("mkdir -p analysis");      // make analysis directory
- 	 	std::system("exec rm -rf analysis/*"); // remove any existing files
- 	}
-
-    outAnalysisInterval = 0;
-    if (numAnalysisOutputs != 0) outAnalysisInterval = p.nstep/numAnalysisOutputs;
-    if (numAnalysisOutputs == 0) outAnalysisInterval = p.nstep+1;
+    noiseStr = input_params("PFApp/noiseStr",0.1);
 
 }
 
@@ -56,7 +44,7 @@ TIPS4::TIPS4(const CommonParams& pin,
 // Destructor:
 // -------------------------------------------------------------------------
 
-TIPS4::~TIPS4()
+TIPSbath::~TIPSbath()
 {
 
 }
@@ -67,7 +55,7 @@ TIPS4::~TIPS4()
 // Initialize phase-field method:
 // -------------------------------------------------------------------------
 
-void TIPS4::initPhaseField()
+void TIPSbath::initPhaseField()
 {
 
     //	---------------------------------------
@@ -85,7 +73,6 @@ void TIPS4::initPhaseField()
             }
         }
     }
-
 }
 
 
@@ -94,22 +81,13 @@ void TIPS4::initPhaseField()
 // Step forward in time the phase-field method:
 // -------------------------------------------------------------------------
 
-void TIPS4::updatePhaseField()
+void TIPSbath::updatePhaseField()
 {
-
-    // ---------------------------------------
-    // calculate thermodynamics parameters
-    // ---------------------------------------
-
-    double T = Tstart - (Tstart-Tend)*(double(current_step)/double(p.nstep));
-    double kT = T/273.0;
-    double chi = alpha/T + beta;
 
     // ---------------------------------------
     // calculate chemical potential & mobility
     // ---------------------------------------
 
-    //c.updatePBC();
     c.updatePBCNoFluxZ();
     MPI::COMM_WORLD.Barrier();
 
@@ -120,6 +98,9 @@ void TIPS4::updatePhaseField()
             for (int k=1; k<nz+1; k++) {
                 int ndx = i*deli + j*delj + k*delk;
                 double cc = c.getValue(ndx);
+                double T = Tinit;  // finish this expression...
+                double kT = T/273.0;
+                double chi = alpha/T + beta;
                 // chemical potential...
                 double df = (log(cc) + 1.0)/N - log(1.0-cc) - 1.0 + chi*(1.0-2.0*cc);
                 df *= kT;
@@ -138,8 +119,6 @@ void TIPS4::updatePhaseField()
     // update CH equation:
     // ---------------------------------------
 
-    //mu.updatePBC();
-    //mob.updatePBC();
     mu.updatePBCNoFluxZ();
     mob.updatePBCNoFluxZ();
     MPI::COMM_WORLD.Barrier();
@@ -155,18 +134,10 @@ void TIPS4::updatePhaseField()
             for (int k=1; k<nz+1; k++) {
                 int ndx = i*deli + j*delj + k*delk;
                 double r = (double)rand()/RAND_MAX;
-                double val = 0.1*(r-0.5);
+                double val = noiseStr*(r-0.5);
                 c.addValue(ndx,p.dt*val);
             }
         }
-    }
-
-    // ---------------------------------------
-    // Calculate average droplet size:
-    // ---------------------------------------
-
-    if (current_step == 1 || current_step%outAnalysisInterval == 0) {
-        averageDropletSize();
     }
 
 }
@@ -177,78 +148,10 @@ void TIPS4::updatePhaseField()
 // Write output for the phase-field method:
 // -------------------------------------------------------------------------
 
-void TIPS4::outputPhaseField()
+void TIPSbath::outputPhaseField()
 {
     int iskip = p.iskip;
     int jskip = p.jskip;
     int kskip = p.kskip;
     c.writeVTKFile("c",current_step,iskip,jskip,kskip);
-}
-
-
-
-// -------------------------------------------------------------------------
-// Calculate averge droplet size:
-// -------------------------------------------------------------------------
-
-void TIPS4::averageDropletSize()
-{
-
-    // ---------------------------------------
-    // Loop over grid to do some counting:
-    // ---------------------------------------
-
-    int ndropsTot = 0;
-    int npoints = 0;
-
-    for (int i=1; i<nx+1; i++) {
-
-        // data for one column
-        int ndrops = 0;
-        bool indrop = false;
-
-        // run along one column
-        for (int j=1; j<ny+1; j++) {
-            int ndx = i*deli + j*delj + 1*delk;
-            double cc = c.getValue(ndx);
-            // see if this point is inside a droplet:
-            if (cc < 0.15) {
-                if (!indrop) ndrops++;
-                indrop = true;
-                npoints++;
-            } else {
-                indrop = false;
-            }
-        }
-
-        // keep running tally of # of drops
-        ndropsTot += ndrops;
-
-    }
-
-    // ---------------------------------------
-    // Collect information to rank=0:
-    // ---------------------------------------
-
-    int ndropsGlobal = 0;
-    int npointsGlobal = 0;
-    MPI::COMM_WORLD.Reduce(&ndropsTot,&ndropsGlobal,1,MPI_INT,MPI_SUM,0);
-    MPI::COMM_WORLD.Reduce(&npoints,&npointsGlobal,1,MPI_INT,MPI_SUM,0);
-
-    // ---------------------------------------
-    // Output:
-    // ---------------------------------------
-
-    if (p.rank == 0) {
-        // calculate average diameter
-        int aveDropNum = ndropsGlobal/p.np;
-        double aveDropSize = double(npointsGlobal)/double(aveDropNum);
-        double aveDropDiam = 4*sqrt(aveDropSize)/3.14;
-        if (ndropsGlobal == 0) aveDropDiam = 0.0;
-        // write to file
-        ofstream outfile;
-        outfile.open("analysis/drop_size",std::ios_base::app);
-        outfile << current_step*p.dt << " " << aveDropDiam << endl;
-    }
-
 }

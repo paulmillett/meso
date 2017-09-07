@@ -103,10 +103,10 @@ void SfieldFD::resetSfieldFD()
 
 
 // -------------------------------------------------------------------------
-// Periodic boundary conditions:
+// Periodic boundary conditions in all directions:
 // -------------------------------------------------------------------------
 
-void SfieldFD::updateBoundaryConditions()
+void SfieldFD::updatePBC()
 {
 
     // -----------------------------------
@@ -134,6 +134,45 @@ void SfieldFD::updateBoundaryConditions()
         for (int j=1; j<ny+1; j++) {
             a[0 + j*delj + i*deli] = a[nz + j*delj + i*deli];
             a[(nz+1) + j*delj + i*deli] = a[1 + j*delj + i*deli];
+        }
+    }
+
+}
+
+
+
+// -------------------------------------------------------------------------
+// Periodic boundary conditions in x- & y-directions, no flux in z-dir:
+// -------------------------------------------------------------------------
+
+void SfieldFD::updatePBCNoFluxZ()
+{
+
+    // -----------------------------------
+    // Set boundary conditions (x-dir.)
+    // -----------------------------------
+
+    mpiBorderExchange();
+
+    // -----------------------------------
+    // Set boundary conditions (y-dir.)
+    // -----------------------------------
+
+    for (int i=1; i<nx+1; i++) {
+        for (int k=1; k<nz+1; k++) {
+            a[k + 0*delj + i*deli] = a[k + ny*delj + i*deli];
+            a[k + (ny+1)*delj + i*deli] = a[k + 1*delj + i*deli];
+        }
+    }
+
+    // -----------------------------------
+    // Set boundary conditions (z-dir.)
+    // -----------------------------------
+
+    for (int i=1; i<nx+1; i++) {
+        for (int j=1; j<ny+1; j++) {
+            a[0 + j*delj + i*deli] = a[2 + j*delj + i*deli];
+            a[(nz+1) + j*delj + i*deli] = a[(nz-1) + j*delj + i*deli];
         }
     }
 
