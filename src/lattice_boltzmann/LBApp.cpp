@@ -122,5 +122,5 @@ void LBApp::writeOutput(int step)
    int jskip = 1;
    int kskip = 1;
    //lb_system->writeVTKFile("rho",step,iskip,jskip,kskip);
-   mcmp_object->writeVTKFile("rhoA",current_step,iskip,jskip,kskip);
+   mcmp_object->writeVTKFile("rhoA",step,iskip,jskip,kskip);
 }

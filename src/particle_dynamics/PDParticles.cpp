@@ -330,8 +330,6 @@ void PDParticles::writeVTKFile(string tagname, int tagnum)
 
     // -----------------------------------
     //	Write the position data:
-    // NOTE: x-data increases fastest,
-    //       then y-data, then z-data
     // -----------------------------------
 
     for (int i=0; i<N; i++) {
