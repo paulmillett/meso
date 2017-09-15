@@ -61,3 +61,23 @@ void Hertz::fijFunc(int i, int j)
         }
     }
 }
+
+
+// ------------------------------------------------------------
+// sets the appropriate parameters for particle equilibration.
+// ------------------------------------------------------------
+
+void Hertz::equilOn()
+{
+    // no parameters need to change for equilibration
+}
+
+
+// ------------------------------------------------------------
+// resets parameters after particle equilibration.
+// ------------------------------------------------------------
+
+void Hertz::equilOff()
+{
+    // no parameters need to be reset after equilibration
+}

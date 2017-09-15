@@ -102,11 +102,20 @@ PDParticles::~PDParticles()
 void PDParticles::initParticles()
 {
     icObj->icFunc();
+
+    // --------------------------------
     // equilibrate particles
+    // --------------------------------
+
     std::vector<int> steps;
     double tke = calcTotalKinEnergy();
     kinEnergy.push_back(tke);
     steps.push_back(0);
+
+    // turn on equilibration particle interactions
+    fijObj->equilOn();
+
+    // perform the equilibration steps
     for (int i=1; i<=equilSteps;i++)
     {
         updateParticles();
@@ -114,6 +123,10 @@ void PDParticles::initParticles()
         kinEnergy.push_back(tke);
         steps.push_back(i);
     }
+
+    // turn off equilibration particle interactions
+    fijObj->equilOff();
+
     // write the equilibration data to file
     writeKinEnergy(steps,kinEnergy);
     current_step = 0;
@@ -316,13 +329,23 @@ void PDParticles::writeVTKFile(string tagname, int tagnum)
     outfile << "POINTS" << d << N << d << " float" << endl;
 
     // -----------------------------------
-    //	Write the data:
-    // NOTE: x-data increases fastest,
-    //       then y-data, then z-data
+    //	Write the position data:
     // -----------------------------------
 
     for (int i=0; i<N; i++) {
         outfile << fixed << setprecision(3) << r[i*3+0] << d << r[i*3+1] << d << r[i*3+2] << endl;
+    }
+
+    // -----------------------------------
+    //	write the radius data
+    // -----------------------------------
+
+    outfile << "POINT_DATA\t" << d << N << endl;
+    outfile << "SCALARS radius float\n";
+    outfile << "LOOKUP_TABLE default\n";
+
+    for (int i=0; i<N; i++) {
+        outfile << fixed << setprecision(3) << rad[i] << endl;
     }
 
     // -----------------------------------

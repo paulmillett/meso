@@ -8,41 +8,43 @@
 /*
    This is an implementation of the 'PDForces_BaseClass' base class.
    It calculates an inter-particle force based on the Hertz contact model.
-*/
+   */
 
 class Hertz : public PDForces_BaseClass {
 
-// -------------------------------------------------------------------------
-// Private class members:
-// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Private class members:
+    // -------------------------------------------------------------------------
 
-private:
+    private:
 
-   double K;
-   double rij[3];
-   double rijUnit[3];
-   double rijMag;
-   double s2s;
-   double fmag;
-   double rcut,rcut2;
-   double box[3];
-   vector<double>& r;
-   vector<double>& v;
-   vector<double>& f;
-   vector<double>& rad;
+        double K;
+        double rij[3];
+        double rijUnit[3];
+        double rijMag;
+        double s2s;
+        double fmag;
+        double rcut,rcut2;
+        double box[3];
+        vector<double>& r;
+        vector<double>& v;
+        vector<double>& f;
+        vector<double>& rad;
 
-// -------------------------------------------------------------------------
-// Public class methods:
-// -------------------------------------------------------------------------
+        // -------------------------------------------------------------------------
+        // Public class methods:
+        // -------------------------------------------------------------------------
 
-public:
+    public:
 
-    Hertz(const GetPot&, vector<double>&,
-                         vector<double>&,
-                         vector<double>&,
-                         vector<double>&);
-    ~Hertz();
-    void fijFunc(int,int);
+        Hertz(const GetPot&, vector<double>&,
+                vector<double>&,
+                vector<double>&,
+                vector<double>&);
+        ~Hertz();
+        void fijFunc(int,int);
+        void equilOn();
+        void equilOff();
 
 };
 

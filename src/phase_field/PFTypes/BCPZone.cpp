@@ -73,14 +73,6 @@ void BCPZone::initPhaseField()
    //	---------------------------------------
 
    calculateKfields();
-
-   //	---------------------------------------
-   // Output the initial configuration:
-   //	---------------------------------------
-
-   current_step = 0;
-   outputPhaseField();
-
 }
 
 

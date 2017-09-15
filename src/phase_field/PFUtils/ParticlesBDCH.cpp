@@ -13,7 +13,7 @@ ParticlesBDCH::ParticlesBDCH(const CommonParams& pin,
 {
     // check for thin film geometry
     chbdType = input_params("PFApp/type","CHBD");
-    thickness = input_params("PFApp/thickness",2);
+    thickness = input_params("PFApp/thickness",1);
     if (chbdType == "CHBDThinFilm")
         thinFilm = true;
     else
@@ -23,7 +23,7 @@ ParticlesBDCH::ParticlesBDCH(const CommonParams& pin,
     equilSteps = input_params("PDApp/equilSteps",0);
     // wall interaction parameters
     eps = input_params("PDApp/inter_particle_forces/eps",1.0);
-    n = input_params("PDApp/inter_particle_forces/n",13.0);
+    n = input_params("PDApp/inter_particle_forces/n",7.0);
     // vector dimensions:
     for (int i=0; i<3*N; i++) {
         fcap.push_back(0.0);
@@ -51,7 +51,11 @@ ParticlesBDCH::~ParticlesBDCH()
 void ParticlesBDCH::initParticles()
 {
     icObj->icFunc();
+
+    // --------------------------------
     // equilibrate particles
+    // --------------------------------
+
     if (p.rank == 0)
     {
         // temporarily turn off capillary forces
@@ -61,6 +65,11 @@ void ParticlesBDCH::initParticles()
         double tke = calcTotalKinEnergy();
         kinEnergy.push_back(tke);
         steps.push_back(0);
+
+        // turn on equilibration particle interactions
+        fijObj->equilOn();
+
+        // perform the equilibration steps
         for (int i=1; i<=equilSteps;i++)
         {
             updateParticles();
@@ -68,8 +77,13 @@ void ParticlesBDCH::initParticles()
             kinEnergy.push_back(tke);
             steps.push_back(i);
         }
+
+        // turn off equilibration particle interactions
+        fijObj->equilOff();
+
         // write the equilibration data to file
         writeKinEnergy(steps,kinEnergy);
+
         // put capillary strength back to what it used to be
         cap_str = realCap;
     }
@@ -97,7 +111,7 @@ void ParticlesBDCH::auxiliaryForces()
     }
     if (thinFilm)
     {
-        double zTop = (double)p.NZ*p.dx-p.dx*(double)thickness;
+        double zTop = (double)p.NZ*p.dx + (pradii-p.dx*(double)thickness);
         for (int i=0; i<N; i++)
         {
             // interact with top wall
@@ -105,7 +119,7 @@ void ParticlesBDCH::auxiliaryForces()
             if (dz <= rcut)
                 f[i*3+2] -= (n-1.0)*eps*pow(2.0*rad[i]/dz,n);
             // interact with bottom wall
-            dz = r[i*3+2] - p.dx*(double)thickness;
+            dz = r[i*3+2] + (pradii - p.dx*(double)thickness);
             if (dz <= rcut)
                 f[i*3+2] += (n-1.0)*eps*pow(2.0*rad[i]/dz,n);
         }

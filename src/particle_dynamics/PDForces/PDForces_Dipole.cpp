@@ -28,6 +28,12 @@ Dipole::Dipole(const GetPot& p, vector<double>& rin, vector<double>& vin,
     edir[0] = Ex/Emag;
     edir[1] = Ey/Emag;
     edir[2] = Ez/Emag;
+    // check if using CHBDThinFilm
+    string chbdtype = p("PFApp/type","None");
+    if (chbdtype == "CHBDThinFilm")
+        thinFilm = true;
+    else
+        thinFilm = false;
 }
 
 
@@ -53,7 +59,11 @@ void Dipole::fijFunc(int i, int j)
     for (int k=0; k<3; k++) 
     {
         rij[k] = r[i*3+k] - r[j*3+k];
-        rij[k] -= round(rij[k]/box[k])*box[k];  // <-- pbc's
+        // apply pbc's, not in z-dir if thin film
+        if (!thinFilm)
+            rij[k] -= round(rij[k]/box[k])*box[k]; //pbc all dir
+        else if ( k < 2)
+            rij[k] -= round(rij[k]/box[k])*box[k]; //pbc all minus z
         rij2 += rij[k]*rij[k];
     }
     // if inside the cutoff radius then calculate ij pair interaction
@@ -115,4 +125,35 @@ void Dipole::cross(double (&a)[3], double(&b)[3],double (&crs)[3])
     crs[0] = a[1]*b[2]-b[1]*a[2];
     crs[1] = a[2]*b[0]-b[2]*a[0];
     crs[2] = a[0]*b[1]-b[0]*a[1];
+}
+
+
+// ------------------------------------------------------------
+// sets the appropriate parameters for particle equilibration.
+// ------------------------------------------------------------
+
+void Dipole::equilOn()
+{
+    // save the input file values of the E-field
+    eqEx = Ex;
+    eqEy = Ey;
+    eqEz = Ez;
+
+    // turn off the E-field for equilibration
+    Ex = 0.0;
+    Ey = 0.0;
+    Ez = 0.0;
+}
+
+
+// ------------------------------------------------------------
+// resets parameters after particle equilibration.
+// ------------------------------------------------------------
+
+void Dipole::equilOff()
+{
+    // reset E-field values to input file values
+    Ex = eqEx;
+    Ey = eqEy;
+    Ez = eqEz;
 }

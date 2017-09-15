@@ -72,14 +72,6 @@ void TIPSiso::initPhaseField()
             }
         }
     }
-
-    //	---------------------------------------
-    // Output the initial configuration:
-    //	---------------------------------------
-
-    current_step = 0;
-    outputPhaseField();
-
 }
 
 

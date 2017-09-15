@@ -13,24 +13,26 @@ using namespace std;
 
 class PDForces_BaseClass {
 
-public:
+    public:
 
-   // -------------------------------------------------------------------
-   // Define factory method that creates objects of PDForces_BaseClass
-   // sub-classes:
-   // -------------------------------------------------------------------
+        // -------------------------------------------------------------------
+        // Define factory method that creates objects of PDForces_BaseClass
+        // sub-classes:
+        // -------------------------------------------------------------------
 
-   static PDForces_BaseClass* PDForcesFactory(const GetPot&,
-                                              vector<double>&,
-                                              vector<double>&,
-                                              vector<double>&,
-                                              vector<double>&);
+        static PDForces_BaseClass* PDForcesFactory(const GetPot&,
+                vector<double>&,
+                vector<double>&,
+                vector<double>&,
+                vector<double>&);
 
-   // -------------------------------------------------------------------
-   // pure virtual function:
-   // -------------------------------------------------------------------
+        // -------------------------------------------------------------------
+        // pure virtual function:
+        // -------------------------------------------------------------------
 
-   virtual void fijFunc(int,int) = 0;
+        virtual void fijFunc(int,int) = 0;
+        virtual void equilOff() = 0;
+        virtual void equilOn() = 0;
 
 };
 

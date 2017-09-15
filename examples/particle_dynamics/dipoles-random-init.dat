@@ -23,6 +23,8 @@
     density = 0.23          # particle density
     drag_coef = 3.0         # drag strength due to viscosity of medium
     bm_str = 0.5            # brownian motion strength
+    equilSteps = 500        # number of steps to equilibrate particles
+    outputForces = 0        # 1 = write forces, 0 don't write forces
     [./initial_condition]
         vscl = 0.0          # scale initial velocity
         type = random       # place particles randomly in domain

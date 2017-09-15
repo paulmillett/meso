@@ -86,13 +86,6 @@ void TIPS4::initPhaseField()
         }
     }
 
-    //	---------------------------------------
-    // Output the initial configuration:
-    //	---------------------------------------
-
-    current_step = 0;
-    outputPhaseField();
-
 }
 
 
