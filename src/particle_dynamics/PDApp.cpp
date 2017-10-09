@@ -29,6 +29,9 @@ PDApp::PDApp(const GetPot& input_params)
     p.LY = p.NY*p.dy;
     p.LZ = p.NZ*p.dz;
 
+    // get number of particles to determin if greater than zero
+    numberOfParticles = input_params("PDApp/N",0);
+
     //	---------------------------------------
     //	Get some MPI parameters:
     //	---------------------------------------
@@ -111,5 +114,6 @@ void PDApp::stepForward(int step)
 void PDApp::writeOutput(int step)
 {
     pd_object->setTimeStep(step);
-    pd_object->outputParticles();
+    if(numberOfParticles > 0)
+        pd_object->outputParticles();
 }

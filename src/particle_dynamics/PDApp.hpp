@@ -17,6 +17,7 @@ private:
 	int current_step;
 	CommonParams p;
 	PDParticles* pd_object;
+    int numberOfParticles; // for turning of output when N=0
 
 public:
 
