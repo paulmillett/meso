@@ -17,6 +17,7 @@ class CHBD: public PFBaseClass {
         int current_step;
         int nxyz;
         int part_step_skip;
+        int numberOfParticles; //for turning off output when N=0
         Sfield c1;
         Sfield c2;
         Sfield cp;

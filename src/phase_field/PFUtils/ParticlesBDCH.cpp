@@ -261,7 +261,8 @@ void ParticlesBDCH::calcCapillaryForce(const Sfield& cp,
         }
     }
     // Collect all capillary forces to MASTER
-    MPI::COMM_WORLD.Reduce(&fcap[0],&fcapSum[0],3*N,MPI::DOUBLE,MPI::SUM,0);
+    if (N>0)
+        MPI::COMM_WORLD.Reduce(&fcap[0],&fcapSum[0],3*N,MPI::DOUBLE,MPI::SUM,0);
     if (p.rank == 0) {
         for (int i=0; i<3*N; i++) fcap[i] = fcapSum[i];
     }

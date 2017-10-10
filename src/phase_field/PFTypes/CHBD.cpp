@@ -35,6 +35,7 @@ CHBD::CHBD(const CommonParams& pin,
     kap = input_params("PFApp/kap",1.0);
     part_step_skip = input_params("PFApp/part_step_skip",5);
     eCH = input_params("PFApp/eCH",0.0);
+    numberOfParticles = input_params("PDApp/N",0);
 
 }
 
@@ -164,9 +165,12 @@ void CHBD::outputPhaseField()
     int kskip = p.kskip;
     c1.writeVTKFile("c1",current_step,iskip,jskip,kskip);
     c2.writeVTKFile("c2",current_step,iskip,jskip,kskip);
-    cp.writeVTKFile("cp",current_step,iskip,jskip,kskip);
-    if (p.rank == 0) 
-        particles.outputParticles();
+    if (numberOfParticles > 0) // then write particle vtks
+    {
+        cp.writeVTKFile("cp",current_step,iskip,jskip,kskip);
+        if (p.rank == 0) 
+            particles.outputParticles();
+    }
 }
 
 
