@@ -286,7 +286,7 @@ bool ParticlesBDCH::isMyParticle(double x, int i)
     // implement PBC for first and last domain
     else if ( p.rank == 0 && x > (lower+double(p.NX)*p.dx) )
         return true;
-    else if ( p.rank == p.np && x < rad[i] )
+    else if ( p.rank == p.np-1 && x < rad[i] )
         return true;
     else
         return false;
