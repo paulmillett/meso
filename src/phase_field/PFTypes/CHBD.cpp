@@ -1,5 +1,6 @@
 
 # include "CHBD.hpp"
+# include <ctime>
 
 
 
@@ -10,7 +11,7 @@
 CHBD::CHBD(const CommonParams& pin,
            const GetPot& input_params) : p(pin), c1(p), c2(p), cp(p),
                                          particles(p,input_params),
-                                         k1(p), k2(p), k4(p)
+                                         k1(p), k2(p), k4(p), rng()
 {
 
     //	---------------------------------------
@@ -35,8 +36,20 @@ CHBD::CHBD(const CommonParams& pin,
     kap = input_params("PFApp/kap",1.0);
     part_step_skip = input_params("PFApp/part_step_skip",5);
     eCH = input_params("PFApp/eCH",0.0);
+    noiseStr = input_params("PFApp/noiseStr",0.0);
     numberOfParticles = input_params("PDApp/N",0);
 
+    //	---------------------------------------
+    // Seed random number generator:
+    //	---------------------------------------
+
+    uint32_t seed = input_params("PFApp/rseed",0);
+    if(seed)
+        rng.init(seed);
+    else // use the clock to seed generator
+    {
+        rng.init(time(NULL));
+    }
 }
 
 
@@ -107,7 +120,7 @@ void CHBD::updatePhaseField()
 {
 
     //	---------------------------------------
-    // Update particles:
+    //  Update particles:
     //	---------------------------------------
 
     particles.setTimeStep(current_step);
@@ -118,7 +131,23 @@ void CHBD::updatePhaseField()
     }
 
     //	---------------------------------------
-    // Update Cahn-Hilliard:
+    //  add noise to concentration fields
+    //	---------------------------------------
+
+    for(size_t i=0 ; i<nxyz ; i++)
+    {
+        // if not in particle then add noise
+        if(creal(cp.getValue(i)) < 0.001)
+        {
+            double noiseValue1 = noiseStr*rng.uniform();
+            double noiseValue2 = noiseStr*rng.uniform();
+            c1.addValue(i,noiseValue1);
+            c2.addValue(i,noiseValue2);
+        }
+    }
+
+    //	---------------------------------------
+    //  Update Cahn-Hilliard:
     //	---------------------------------------
 
     Sfield dfdc1 = 12.0*w*(c1*c1*c1 - c1*c1 + c1*c2*c2 + c1*cp);
@@ -145,7 +174,7 @@ void CHBD::updatePhaseField()
     c2.ifft(p_backward);
 
     //	---------------------------------------
-    // Sync the processors:
+    //  Sync the processors:
     //	---------------------------------------
 
     MPI::COMM_WORLD.Barrier();

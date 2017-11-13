@@ -6,6 +6,7 @@
 # include "../PFUtils/Sfield.hpp"
 # include "../PFUtils/Vfield.hpp"
 # include "../PFUtils/ParticlesBDCH.hpp"
+# include "../../utils/rand.hpp"
 # include <complex.h>
 # include <fftw3-mpi.h>
 
@@ -31,9 +32,11 @@ class CHBD: public PFBaseClass {
         double w;
         double kap;
         double eCH;
+        double noiseStr;
         fftw_plan p_forward;
         fftw_plan p_backward;
         fftw_complex* dummy;
+        Rand rng; // Mersenne Twister random number generator
 
     public:
 
