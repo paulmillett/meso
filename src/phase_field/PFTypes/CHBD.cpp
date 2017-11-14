@@ -10,8 +10,8 @@
 
 CHBD::CHBD(const CommonParams& pin,
            const GetPot& input_params) : p(pin), c1(p), c2(p), cp(p),
-                                         particles(p,input_params),
-                                         k1(p), k2(p), k4(p), rng()
+                                         k1(p), k2(p), k4(p), rng(),
+                                         particles(p,input_params)
 {
 
     //	---------------------------------------
@@ -38,6 +38,7 @@ CHBD::CHBD(const CommonParams& pin,
     eCH = input_params("PFApp/eCH",0.0);
     noiseStr = input_params("PFApp/noiseStr",0.0);
     numberOfParticles = input_params("PDApp/N",0);
+    pfType = input_params("PFApp/type","None");
 
     //	---------------------------------------
     // Seed random number generator:
@@ -45,10 +46,10 @@ CHBD::CHBD(const CommonParams& pin,
 
     uint32_t seed = input_params("PFApp/rseed",0);
     if(seed)
-        rng.init(seed);
+        rng.init(seed+p.rank);
     else // use the clock to seed generator
     {
-        rng.init(time(NULL));
+        rng.init(time(NULL)+p.rank);
     }
 }
 
@@ -131,22 +132,6 @@ void CHBD::updatePhaseField()
     }
 
     //	---------------------------------------
-    //  add noise to concentration fields
-    //	---------------------------------------
-
-    for(size_t i=0 ; i<nxyz ; i++)
-    {
-        // if not in particle then add noise
-        if(creal(cp.getValue(i)) < 0.001)
-        {
-            double noiseValue1 = noiseStr*rng.uniform();
-            double noiseValue2 = noiseStr*rng.uniform();
-            c1.addValue(i,noiseValue1);
-            c2.addValue(i,noiseValue2);
-        }
-    }
-
-    //	---------------------------------------
     //  Update Cahn-Hilliard:
     //	---------------------------------------
 
@@ -174,6 +159,25 @@ void CHBD::updatePhaseField()
     c2.ifft(p_backward);
 
     //	---------------------------------------
+    //  add noise to concentration fields
+    //	---------------------------------------
+
+    if(noiseStr > 0.0)
+    {
+        for(int i=0 ; i<nxyz ; i++)
+        {
+            // if not in particle then add noise
+            if(creal(cp.getValue(i)) == 0.0)
+            {
+                double noiseValue1 = noiseStr*0.2*rng.normal();
+                double noiseValue2 = noiseStr*0.2*rng.normal();
+                c1.addValue(i,noiseValue1);
+                c2.addValue(i,noiseValue2);
+            }
+        }
+    }
+
+    //	---------------------------------------
     //  Sync the processors:
     //	---------------------------------------
 
@@ -194,10 +198,10 @@ void CHBD::outputPhaseField()
     int kskip = p.kskip;
     c1.writeVTKFile("c1",current_step,iskip,jskip,kskip);
     c2.writeVTKFile("c2",current_step,iskip,jskip,kskip);
-    if (numberOfParticles > 0) // then write particle vtks
+    if (numberOfParticles > 0 || pfType == "CHBDThinFilm" ) // then write particle vtks
     {
         cp.writeVTKFile("cp",current_step,iskip,jskip,kskip);
-        if (p.rank == 0) 
+        if (p.rank == 0 && numberOfParticles > 0) 
             particles.outputParticles();
     }
 }
