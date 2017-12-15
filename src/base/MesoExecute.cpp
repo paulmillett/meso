@@ -17,7 +17,6 @@ MesoExecute::MesoExecute()
    // -----------------------------------
 
    MPI::Init();
-   int np = MPI::COMM_WORLD.Get_size();            // # of processors
    int rank = MPI::COMM_WORLD.Get_rank();          // my processor number
 
    // -----------------------------------
@@ -67,7 +66,7 @@ void MesoExecute::createMesoObjects()
    // determine which sections are executable 'apps':
    // ------------------------------------------------
 
-   for (int i=0; i<sections.size(); i++) {
+   for (size_t i=0; i<sections.size(); i++) {
 
       // ---------------------------------------------
       // get string that stores value of "section/app"
@@ -91,7 +90,7 @@ void MesoExecute::createMesoObjects()
    // loop over executable objects, initializing each:
    // ------------------------------------------------
 
-   for (int i=0; i<mesoapps.size(); i++) {
+   for (size_t i=0; i<mesoapps.size(); i++) {
       mesoapps[i]->initSystem();
       mesoapps[i]->writeOutput(0);
    }
@@ -133,7 +132,7 @@ void MesoExecute::executeMesoSimulation()
       // call 'StepForward' for each app:
       // --------------------------------
 
-      for (int i=0; i<mesoapps.size(); i++) {
+      for (size_t i=0; i<mesoapps.size(); i++) {
          mesoapps[i]->stepForward(step);
       }
 
@@ -142,7 +141,7 @@ void MesoExecute::executeMesoSimulation()
       // --------------------------------
 
       if (step%outInterval == 0) {
-         for (int i=0; i<mesoapps.size(); i++) {
+         for (size_t i=0; i<mesoapps.size(); i++) {
             mesoapps[i]->writeOutput(step);
          }
       }

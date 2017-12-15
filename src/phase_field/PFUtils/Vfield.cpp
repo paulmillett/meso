@@ -93,9 +93,9 @@ void Vfield::addExtrapolation(double vx, double vy, double vz,
     int z0 = int(floor(z)/p.dz);
     int z1 = z0 + 1;
     if (z1 >= nz) z1 = 0;
-    double xd = x - double(x0);
-    double yd = y - double(y0);
-    double zd = z - double(z0);
+    /* double xd = x - double(x0); */ // not being used, can we delete it?
+    /* double yd = y - double(y0); */ // not being used, can we delete it?
+    /* double zd = z - double(z0); */ // not being used, can we delete it?
 
     // --------------------------------------
     // extrapolate vx,vy,vz to those nodes:
@@ -308,7 +308,7 @@ void Vfield::writeVTKFile(std::string tagname, int tagnum,
     //       then y-data, then z-data
     // -----------------------------------
 
-    int np = MPI::COMM_WORLD.Get_size();    // # of processors
+    /* int np = MPI::COMM_WORLD.Get_size();    // not being used, can we delete it? */
 
     for (int k=0; k<p.nz; k+=kskip) {
         for (int j=0; j<p.ny; j+=jskip) {

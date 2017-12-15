@@ -29,6 +29,13 @@ public:
    virtual void stepForward(int) = 0;
    virtual void writeOutput(int) = 0;
 
+   // -------------------------------------------------------------------
+   // Virtual destructor:
+   // -------------------------------------------------------------------
+
+   virtual ~MesoBase()
+   {
+   }
 };
 
 # endif  // MESOBASE_H

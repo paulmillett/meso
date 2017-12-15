@@ -36,6 +36,5 @@ MesoBase* MesoBase::MesoObjectFactory(string specifier)
    if (specifier == "LBApp/") return new LBApp(InParams);
    if (specifier == "PFApp/") return new PFApp(InParams);
    if (specifier == "PDApp/") return new PDApp(InParams);
-   //if (specifier == "FIPIApp/") return new FIPIApp(InParams);
 
 }

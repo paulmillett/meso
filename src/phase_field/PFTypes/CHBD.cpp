@@ -169,8 +169,8 @@ void CHBD::updatePhaseField()
             // if not in particle then add noise
             if(creal(cp.getValue(i)) == 0.0)
             {
-                double noiseValue1 = noiseStr*0.2*rng.normal();
-                double noiseValue2 = noiseStr*0.2*rng.normal();
+                double noiseValue1 = noiseStr*(rng.uniform()-0.5);
+                double noiseValue2 = noiseStr*(rng.uniform()-0.5);
                 c1.addValue(i,noiseValue1);
                 c2.addValue(i,noiseValue2);
             }

@@ -15,12 +15,6 @@ CHBDThinFilm::CHBDThinFilm(const CommonParams& pin,
            const GetPot& input_params) : CHBD(pin,input_params)
 {
     thickness = input_params("PFApp/thickness",1);
-    /* for(int i=0;i<10;i++) */
-    /* { */
-    /*     double r = rng.uniform(); */
-    /*     double noiseValue = noiseStr*r; */
-    /*     cout << noiseValue << "\tr=" << r << endl; */
-    /* } */
 }
 
 
@@ -140,8 +134,6 @@ void CHBDThinFilm::updatePhaseField()
             // if not in wall or particle then add noise
             if(creal(cp.getValue(i)) == 0.0)
             {
-                /* double noiseValue1 = noiseStr*0.2*rng.normal(); */
-                /* double noiseValue2 = noiseStr*0.2*rng.normal(); */
                 double noiseValue1 = noiseStr*(rng.uniform()-0.5);
                 double noiseValue2 = noiseStr*(rng.uniform()-0.5);
                 c1.addValue(i,noiseValue1);
