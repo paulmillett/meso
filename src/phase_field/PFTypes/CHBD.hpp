@@ -6,8 +6,10 @@
 # include "../PFUtils/Sfield.hpp"
 # include "../PFUtils/Vfield.hpp"
 # include "../PFUtils/ParticlesBDCH.hpp"
+# include "../../utils/rand.hpp"
 # include <complex.h>
 # include <fftw3-mpi.h>
+# include <string>
 
 class CHBD: public PFBaseClass {
 
@@ -25,12 +27,15 @@ class CHBD: public PFBaseClass {
         Sfield k2;
         Sfield k4;
         Sfield * kz; // for applying E-field in z-dir
+        Rand rng; // Mersenne Twister random number generator
         ParticlesBDCH particles;
         double co;
         double M;
         double w;
         double kap;
         double eCH;
+        double noiseStr;
+        string pfType;
         fftw_plan p_forward;
         fftw_plan p_backward;
         fftw_complex* dummy;

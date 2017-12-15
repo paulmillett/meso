@@ -43,4 +43,6 @@ PFBaseClass* PFBaseClass::PFFactory(const CommonParams& p,
     if (pf_type == "BCPZone") return new BCPZone(p,input_params);
     if (pf_type == "CHTernary") return new CHTernary(p,input_params);
 
+    // if input file doesn't have a correct type return a nullptr
+    return NULL;
 }

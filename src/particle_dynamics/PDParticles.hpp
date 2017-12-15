@@ -20,7 +20,7 @@ class PDParticles {
     public:
 
         PDParticles(const CommonParams&, const GetPot&);
-        ~PDParticles();
+        virtual ~PDParticles();
         void updateParticles();
         void outputParticles();
         void setTimeStep(int step) {current_step = step;}
