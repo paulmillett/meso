@@ -126,12 +126,14 @@ void TIPSphil::updatePhaseField()
                 mu.setValue(ndx,df - kap*lapc);
                 // polymer self diffusion (Phillies)...
                 double cc_phil = 0.001;
-		if (cc < 0.0) cc_phil = 0.001;
-		else if (cc >= 1.0) cc_phil = 0.999;
-		else { 
+		          if (cc < 0.0) cc_phil = 0.001;
+		          else if (cc >= 1.0) cc_phil = 0.999;
+		          else { 
                 double cc_phil = cc * Mweight / Mvolume; // convert phi to g/L
                 }
-		double Dp = D0 * exp (- gamma * pow(cc_phil,nu));
+                D0 = 1.0 * (T/Tinit);
+                if (D0 > 1.0) D0 = 1.0;
+		          double Dp = D0 * exp (- gamma * pow(cc_phil,nu));
                 // 2nd derivative of FH w/o chi
                 double ddf = 0.5 * (1.0/(N*cc) + 1.0/(1.0-cc)); 
                 ddf *= kT; 
