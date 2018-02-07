@@ -27,6 +27,7 @@ MesoExecute::MesoExecute()
 	 	std::system("mkdir -p vtkoutput");            // make output directory
 	 	std::system("exec rm -rf vtkoutput/*.vtk");   // remove any existing files
 	}
+   MPI::COMM_WORLD.Barrier();
 
 }
 
