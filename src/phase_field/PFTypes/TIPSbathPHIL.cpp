@@ -103,7 +103,8 @@ void TIPSbathPHIL::updatePhaseField()
 
     c.updatePBCNoFluxZ();
     MPI::COMM_WORLD.Barrier();
-
+    double D = 0.0;
+    double cc_phil = 0.001;
     SfieldFD mu(p);
     SfieldFD mob(p);
     for (int i=1; i<nx+1; i++) {
@@ -111,6 +112,7 @@ void TIPSbathPHIL::updatePhaseField()
             for (int k=1; k<nz+1; k++) {
                 int ndx = i*deli + j*delj + k*delk;
                 double cc = c.getValue(ndx);
+                // 1D thermal diffusion
                 double T = (Tinit-Tbath)*erf(k/(2.0*sqrt(kappa*double(current_step))))+Tbath;  
                 double kT = T/273.0;
                 double chi = alpha/T + beta;
@@ -121,21 +123,19 @@ void TIPSbathPHIL::updatePhaseField()
                 double lapc = c.Laplacian(ndx);
                 mu.setValue(ndx,df - kap*lapc);
                 // polymer self diffusion (Phillies)...
-                double cc_phil = 0.001;
                 if (cc < 0.0) cc_phil = 0.001;
                 else if (cc >= 1.0) cc_phil = 0.999;
                 else { double cc_phil = cc * Mweight / Mvolume;} // convert phi to g/L}
-                D0 = 1.0 * (T/Tinit);
-                if (D0 > 1.0) D0 = 1.0;
-//		double cc_phil = cc * Mweight / Mvolume; // convert phi to g/L
-                double Dp = D0 * exp (- gamma * pow(cc_phil,nu));
+                D = D0 * (T/Tinit);
+                if (D > D0) D = D0;
+                double Dp = D * exp (- gamma * pow(cc_phil,nu));
                 // 2nd derivative of FH w/o chi
                 double ddf = 0.5 * (1.0/(N*cc) + 1.0/(1.0-cc)); 
                 ddf *= kT; 
                 // mobility...
                 double Mc = Dp/ddf;
-                if (Mc < 0.001) Mc = 0.001;
-                if (Mc > 2.0) Mc = 2.0;
+                if (Mc < 0.000001) Mc = 0.000001;
+                if (Mc > D0) Mc = D0;
                 mob.setValue(ndx,Mc);
             }
         }
