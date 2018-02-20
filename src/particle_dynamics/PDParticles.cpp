@@ -501,7 +501,7 @@ void PDParticles::writeKinEnergy(std::vector<int> steps,std::vector<double> kinE
     ke.open("equilibration.csv");
     // write header
     ke << "step,energy\n";
-    for (int i = 0; i<steps.size();i++)
+    for (size_t i = 0; i<steps.size();i++)
         ke << steps[i] << "," << kinEnergy[i] << "\n";
     ke.close();
 }

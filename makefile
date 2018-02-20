@@ -21,6 +21,7 @@ CPP_FILES = $(wildcard	src/lattice_boltzmann/*.cpp \
 						src/phase_field/*/*.cpp \
 						src/particle_dynamics/*.cpp \
 						src/particle_dynamics/*/*.cpp \
+						src/utils/*.cpp \
 						src/base/*.cpp)
 
 #################

@@ -30,6 +30,13 @@ public:
    virtual void outputPhaseField() = 0;
    virtual void setTimeStep(int) = 0;
 
+   // -------------------------------------------------------------------
+   // virtual destructor:
+   // -------------------------------------------------------------------
+
+   virtual ~PFBaseClass()
+   {
+   }
 };
 
 # endif  // PFBASECLASS_H

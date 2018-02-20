@@ -235,7 +235,7 @@ void ParticlesBDCH::calcCapillaryForce(const Sfield& cp,
                             if (p.NZ == 1) kk = 0;
                             // get local field values:
                             int ndx = ii_local*p.nz*p.ny + jj*p.nz + kk;
-                            double ccp = creal(cp.getValue(ndx));
+                            /* double ccp = creal(cp.getValue(ndx)); */
                             double cc1 = creal(c1.getValue(ndx));
                             double cc2 = creal(c2.getValue(ndx));
                             // calculate distance to point:

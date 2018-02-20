@@ -94,12 +94,12 @@ void CHBDThinFilm::updatePhaseField()
         if (p.rank == 0) particles.updateParticles();
         cp = particles.mapToGrid();
     }
+    mapWalls();
 
     //	---------------------------------------
     // Update Cahn-Hilliard:
     //	---------------------------------------
 
-    mapWalls();
     Sfield dfdc1 = 12.0*w*(c1*c1*c1 - c1*c1 + c1*c2*c2 + c1*cp);
     Sfield dfdc2 = 12.0*w*(c2*c2*c2 - c2*c2 + c2*c1*c1 + c2*cp);
     c1.fft(p_forward);
@@ -122,6 +122,25 @@ void CHBDThinFilm::updatePhaseField()
     }
     c1.ifft(p_backward);
     c2.ifft(p_backward);
+
+    //	---------------------------------------
+    //  add noise to concentration fields
+    //	---------------------------------------
+
+    if(noiseStr > 0.0)
+    {
+        for(int i=0 ; i<nxyz ; i++)
+        {
+            // if not in wall or particle then add noise
+            if(creal(cp.getValue(i)) == 0.0)
+            {
+                double noiseValue1 = noiseStr*(rng.uniform()-0.5);
+                double noiseValue2 = noiseStr*(rng.uniform()-0.5);
+                c1.addValue(i,noiseValue1);
+                c2.addValue(i,noiseValue2);
+            }
+        }
+    }
 
     //	---------------------------------------
     // Sync the processors:
