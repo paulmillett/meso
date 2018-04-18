@@ -29,7 +29,7 @@ private:
     double Tbath;
     double Tinit;
     double noiseStr;
-    double kappa;
+    double thermCond;
     double nu;
     double gamma;
     double D0;

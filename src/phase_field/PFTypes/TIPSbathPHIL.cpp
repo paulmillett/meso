@@ -35,7 +35,7 @@ TIPSbathPHIL::TIPSbathPHIL(const CommonParams& pin,
     Tinit = input_params("PFApp/Tinit",273.0);
     numAnalysisOutputs = input_params("PFApp/numAnalysisOutputs",0);
     noiseStr = input_params("PFApp/noiseStr",0.1);
-    kappa = input_params("PFApp/kappa", 1.0);
+    thermCond = input_params("PFApp/thermCond", 1.0);
     nu = input_params("PFApp/nu",1.0);
     gamma = input_params("PFApp/gamma", 10.0);
     D0 = input_params("PFApp/D0", 0.0000001);
@@ -113,7 +113,7 @@ void TIPSbathPHIL::updatePhaseField()
                 int ndx = i*deli + j*delj + k*delk;
                 double cc = c.getValue(ndx);
                 // 1D thermal diffusion
-                double T = (Tinit-Tbath)*erf(k/(2.0*sqrt(kappa*double(current_step))))+Tbath;  
+                double T = (Tinit-Tbath)*erf(k/(2.0*sqrt(thermCond*double(current_step))))+Tbath;  
                 double kT = T/273.0;
                 double chi = alpha/T + beta;
                 // chemical potential...
