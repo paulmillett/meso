@@ -10,10 +10,10 @@
 # include "PFTypes/CHBD.hpp"
 # include "PFTypes/CHBDThinFilm.hpp"
 # include "PFTypes/TIPS4.hpp"
-# include "PFTypes/TIPSiso.hpp"
-# include "PFTypes/TIPSbath.hpp"
 # include "PFTypes/BCPZone.hpp"
 # include "PFTypes/CHTernary.hpp"
+# include "PFTypes/TIPSphil.hpp"
+# include "PFTypes/TIPSbathPHIL.hpp"
 
 // -------------------------------------------------------------------------
 // Factory method: this function returns an object determined
@@ -38,10 +38,10 @@ PFBaseClass* PFBaseClass::PFFactory(const CommonParams& p,
     if (pf_type == "CHBD")    return new CHBD(p,input_params);
     if (pf_type == "CHBDThinFilm")    return new CHBDThinFilm(p,input_params);
     if (pf_type == "TIPS4")    return new TIPS4(p,input_params);
-    if (pf_type == "TIPSiso")    return new TIPSiso(p,input_params);
-    if (pf_type == "TIPSbath")    return new TIPSbath(p,input_params);
     if (pf_type == "BCPZone") return new BCPZone(p,input_params);
     if (pf_type == "CHTernary") return new CHTernary(p,input_params);
+    if (pf_type == "TIPSphil") return new TIPSphil(p,input_params);
+    if (pf_type == "TIPSbathPHIL") return new TIPSbathPHIL(p,input_params);
 
     // if input file doesn't have a correct type return a nullptr
     return NULL;

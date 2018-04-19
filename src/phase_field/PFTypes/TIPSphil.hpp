@@ -1,13 +1,13 @@
 
-# ifndef TIPSBATH_H
-# define TIPSBATH_H
+# ifndef TIPSPHIL_H
+# define TIPSPHIL_H
 
 # include "../PFBaseClass.hpp"
 # include "../PFUtils/SfieldFD.hpp"
 # include <mpi.h>
 
 
-class TIPSbath : public PFBaseClass {
+class TIPSphil : public PFBaseClass {
 
 private:
 
@@ -26,14 +26,19 @@ private:
     double beta;
     double kap;
     double A;
-    double Tbath;
     double Tinit;
+    double Tbath;
     double noiseStr;
-
+    double nu;
+    double gamma;
+    double D0;
+    double cHeat;
+    double Mweight;
+    double Mvolume;
 public:
 
-    TIPSbath(const CommonParams&, const GetPot&);
-    ~TIPSbath();
+    TIPSphil(const CommonParams&, const GetPot&);
+    ~TIPSphil();
     void initPhaseField();
     void updatePhaseField();
     void outputPhaseField();
@@ -41,4 +46,4 @@ public:
 
 };
 
-# endif  // TIPSBATH_H
+# endif  // TIPSPHIL_H
