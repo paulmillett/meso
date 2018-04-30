@@ -36,6 +36,7 @@ class SfieldFD {
         void resetSfieldFD();
         void updatePBC();
         void updatePBCNoFluxZ();
+		void updatePBCFluxY();
         void mpiBorderExchange();
         double   Laplacian(int) const;
         SfieldFD Laplacian() const;
