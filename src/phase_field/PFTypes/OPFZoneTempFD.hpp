@@ -29,6 +29,7 @@ private:
 	double beta;
 	int templating;
 	int templateSpacing;
+	int templateSpacingY;
 
 public:
 

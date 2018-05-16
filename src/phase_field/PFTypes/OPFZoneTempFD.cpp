@@ -36,6 +36,7 @@ OPFZoneTempFD::OPFZoneTempFD(const CommonParams& pin,
 	beta = input_params("PFApp/beta",0.028);
 	templating = input_params("PFApp/templating",0);
 	templateSpacing = input_params("PFApp/templateSpacing",10);
+	templateSpacingY = input_params("PFApp/templateSpacingY",10);
 }
 
 // -------------------------------------------------------------------------
@@ -220,6 +221,26 @@ void OPFZoneTempFD::updatePhaseField()
 					}//j
 				}//i
 			}//case 3
+			break;
+			case 4: // uneven dot spacing in x and y
+			{
+				//determine starting point from x-offset
+				int startAt;
+				if (p.xOff%templateSpacing > 0) {
+					startAt = templateSpacing - (p.xOff%templateSpacing) + 1;
+				}//if
+				else {
+					startAt = 1;
+				}//else
+					
+				for (int i=startAt; i<nx+1; i+=templateSpacing) {
+					for (int j=1; j<ny+1; j+=templateSpacingY) {
+						//set current position
+						int ndx = i*deli + j*delj + k*delk;
+						c.setValue(ndx,1);
+					}//j
+				}//i
+			}//case 4
 		}//switch templating
 	}//if templating
 	
