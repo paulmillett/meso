@@ -2,14 +2,14 @@
 # include "OPFZoneTempFD.hpp"
 # include <iostream>
 # include <fstream>
-
+# include <cmath>
 
 // -------------------------------------------------------------------------
 // Constructor:
 // -------------------------------------------------------------------------
 
 OPFZoneTempFD::OPFZoneTempFD(const CommonParams& pin,
-							 const GetPot& input_params) : p(pin), c(p)
+							 const GetPot& input_params) : p(pin), c(p), tempL(p)
 {
 
     // ---------------------------------------
@@ -35,8 +35,9 @@ OPFZoneTempFD::OPFZoneTempFD(const CommonParams& pin,
 	alpha = input_params("PFApp/alpha",3.9);
 	beta = input_params("PFApp/beta",0.028);
 	templating = input_params("PFApp/templating",0);
-	templateSpacing = input_params("PFApp/templateSpacing",10);
-	templateSpacingY = input_params("PFApp/templateSpacingY",10);
+	tempSpace1 = input_params("PFApp/tempSpace1",10);
+	tempSpace2 = input_params("PFApp/tempSpace2",10);
+	tempSpace3 = input_params("PFApp/tempSpace3",14.5);
 }
 
 // -------------------------------------------------------------------------
@@ -67,10 +68,124 @@ void OPFZoneTempFD::initPhaseField()
                 double r = (double)rand()/RAND_MAX;
                 double val = co + 0.1*(r-0.5);
                 c.setValue(ndx,val);
-            }
-        }
-    }
+            }//i
+        }//j
+    }//k
 
+	if (templating != 0)
+	{
+		//determine z position for (1)2d or (0)3d simulation
+		int k = (nz==1);
+
+		//apply templating type
+		switch(templating)
+		{
+			case 1: // vertical striped templating 
+					// int 		diameter of templating = tempSpace1
+					// double 	x-separation = tempSpace3
+			{
+				double L = tempSpace3;
+				double w = tempSpace1*0.5;
+				double b = 2*M_PI/L;
+				double shift = cos(b*w);
+				double height = (1-shift);
+				for (int i=1; i<nx+1; i++) {
+					double zDot = cos(b*(i+p.xOff-1));
+					zDot -= shift;
+					zDot /= height;
+					if (zDot > 0.0) {
+						for (int j=1; j<ny+1; j++) {					
+							int ndx = i*deli + j*delj + k*delk;
+							tempL.setValue(ndx,zDot);
+						}//j
+					}//if
+				}//i				
+			}//case 1
+			break;
+			
+			case 2: /// leading edge horizontal line array
+					// int 		line diameter = tempSpace1
+					// int		x-length = tempSpace2
+					// double 	y-separation = tempSpace3
+			{
+				double L = tempSpace3;
+				int endAt = min(tempSpace2-p.xOff,nx);
+				if (endAt > 0) {
+					double w = tempSpace1*0.5;
+					double b = 2*M_PI/L;
+					double shift = cos(b*w);
+					double height = (1-shift);
+					for (int j=1; j<ny+1; j++) {
+						double zCyl = cos(b*(j-1));
+						zCyl -= shift;
+						zCyl /= height;
+						if (zCyl > 0.0) {
+							for (int i=1; i<endAt+1; i++) {
+								int ndx = i*deli + j*delj + k*delk;
+								tempL.setValue(ndx,zCyl);
+							}//i
+						}//if
+					}//j					
+				}//if
+			}//case 2
+			break;
+			
+			case 3: // square dot array
+					// int 		dot diameter = tempSpace1
+					// int 		number of columns = tempSpace2
+					// double 	separation distance = tempSpace3
+			{
+				double L = tempSpace3;
+				int endAt = min(floor(L*(0.5+(tempSpace2-1)))-p.xOff,nx*1.0);
+				if (endAt > 0) {
+					double w = tempSpace1*0.5;
+					double b = 2*M_PI/L;
+					double shift = cos(b*w)+cos(b);
+					double height = (2-shift);
+					for (int j=1; j<ny+1; j++) {
+						for (int i=1; i<endAt+1; i++) {
+							double zDot = cos(b*(i+p.xOff-1))+cos(b*(j-1));
+							zDot -= shift;
+							zDot /= height;
+							if (zDot > 0.0) {
+								int ndx = i*deli + j*delj + k*delk;
+								tempL.setValue(ndx,zDot);
+							}//if
+						}//i
+					}//j					
+				}//if
+			}//case 3
+			break;
+			
+			case 4: // square dot array
+					// int 		dot diameter = tempSpace1
+					// int 		number of columns = tempSpace2
+					// double 	separation distance = tempSpace3
+			{
+				double L = tempSpace3*sqrt(2);
+				int endAt = min(floor(L*(0.5+(tempSpace2-1)))-p.xOff,nx*1.0);
+				if (endAt > 0) {
+					double w = tempSpace1*0.5;
+					double b = 2*M_PI/L;
+					double shift = cos(b*w)*cos(b);
+					double height = (1-shift);
+					for (int j=1; j<ny+1; j++) {
+						for (int i=1; i<endAt+1; i++) {
+							double zDot = cos(b*(i+p.xOff-1))*cos(b*(j-1));
+							zDot -= shift;
+							zDot /= height;
+							if (zDot > 0.0) {
+								int ndx = i*deli + j*delj + k*delk;
+								tempL.setValue(ndx,zDot);
+							}//if
+						}//i
+					}//j					
+				}//if
+			}//case 4
+			break;
+		}//switch templating
+	}//if templating
+	
 }
 
 // -------------------------------------------------------------------------
@@ -162,86 +277,19 @@ void OPFZoneTempFD::updatePhaseField()
     // Apply surface templating:
     // ---------------------------------------
 
-	if (templating != 0)
+	if (templating)
 	{
 		//determine z position for (1)2d or (0)3d simulation
 		int k = (nz==1);
-		
-		//apply templating type
-		switch(templating)
-		{
-			case 1: // horizontal striped templating (X-direction, y-spacing)
-			{
-				for (int j=1; j<ny+1; j+=templateSpacing) {
-					for (int i=1; i<nx+1; i++) {
-										
-						//set current position
-						int ndx = i*deli + j*delj + k*delk;
-						c.setValue(ndx,1);
-					}//j
-				}//i
-			}//case 1
-			break;
-			case 2: // vertical striped templating (Y-direction, x-spacing)
-			{
-				//determine starting point from x-offset
-				int startAt;
-				if (p.xOff%templateSpacing > 0) {
-					startAt = templateSpacing - (p.xOff%templateSpacing) + 1;
-				}//if
-				else {
-					startAt = 1;
-				}//else
-				for (int i=startAt; i<nx+1; i+=templateSpacing) {
-					for (int j=1; j<ny+1; j++) {
-					
-						//set current position
-						int ndx = i*deli + j*delj + k*delk;
-						c.setValue(ndx,1);
-					}//j
-				}//i
-			}//case 2
-			break;
-			case 3: // square dot templating
-			{
-				//determine starting point from x-offset
-				int startAt;
-				if (p.xOff%templateSpacing > 0) {
-					startAt = templateSpacing - (p.xOff%templateSpacing) + 1;
-				}//if
-				else {
-					startAt = 1;
-				}//else
-					
-				for (int i=startAt; i<nx+1; i+=templateSpacing) {
-					for (int j=1; j<ny+1; j+=templateSpacing) {
-						//set current position
-						int ndx = i*deli + j*delj + k*delk;
-						c.setValue(ndx,1);
-					}//j
-				}//i
-			}//case 3
-			break;
-			case 4: // uneven dot spacing in x and y
-			{
-				//determine starting point from x-offset
-				int startAt;
-				if (p.xOff%templateSpacing > 0) {
-					startAt = templateSpacing - (p.xOff%templateSpacing) + 1;
-				}//if
-				else {
-					startAt = 1;
-				}//else
-					
-				for (int i=startAt; i<nx+1; i+=templateSpacing) {
-					for (int j=1; j<ny+1; j+=templateSpacingY) {
-						//set current position
-						int ndx = i*deli + j*delj + k*delk;
-						c.setValue(ndx,1);
-					}//j
-				}//i
-			}//case 4
-		}//switch templating
+		// apply templating
+		for (int j=1; j<ny+1; j++) {
+			for (int i=1; i<nx+1; i++) {
+				int ndx = i*deli + j*delj + k*delk;
+				double zDot = tempL.getValue(ndx);
+				double cc = c.getValue(ndx);
+				c.setValue(ndx,max(cc,zDot));
+			}//i
+		}//j
 	}//if templating
 	
 		
