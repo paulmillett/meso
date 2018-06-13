@@ -231,6 +231,71 @@ void SfieldFD::updatePBCFluxY()
 
 }
 
+void SfieldFD::updateBoundaries(bool bX, bool bY, bool bZ)
+{
+    // -----------------------------------
+    // X-Direction Boundaries
+    // -----------------------------------
+
+	//Exchange boundaries between neighbor processors (MPI)
+    mpiBorderExchange();
+
+	if (!bX) {
+		// Set no flux BC (x-dir.)
+		//Override boundaries on end processors
+		for (int j=1; j<ny+1; j++) {
+			for (int k=1; k<nz+1; k++) {
+				if (p.rank == 0){
+					a[k + j*delj + 0*deli] = a[k + j*delj + 1*deli];
+				}
+				if (p.rank == p.np-1){
+					a[k + j*delj + (nx+1)*deli] = a[k + j*delj + nx*deli];
+				}
+			}
+		}
+	}
+
+    // -----------------------------------
+    // Y-Direction Boundaries
+    // -----------------------------------
+	if (bY) {
+		// Set periodic BC (y-dir.)
+		for (int i=1; i<nx+1; i++) {
+			for (int k=1; k<nz+1; k++) {
+				a[k + 0*delj + i*deli] = a[k + ny*delj + i*deli];
+				a[k + (ny+1)*delj + i*deli] = a[k + 1*delj + i*deli];
+			}
+		}
+	} else {
+		// Set no flux BC (y-dir.)
+		for (int i=1; i<nx+1; i++) {
+			for (int k=1; k<nz+1; k++) {
+				a[k + 0*delj + i*deli] = a[k + 1*delj + i*deli];
+				a[k + (ny+1)*delj + i*deli] = a[k + ny*delj + i*deli];
+			}
+		}
+	}
+    // -----------------------------------
+    // Z-Direction Boundaries
+    // -----------------------------------
+	if (bZ) {
+		for (int i=1; i<nx+1; i++) {
+			for (int j=1; j<ny+1; j++) {
+				a[0 + j*delj + i*deli] = a[nz + j*delj + i*deli];
+				a[(nz+1) + j*delj + i*deli] = a[1 + j*delj + i*deli];
+			}
+		}
+	} else {
+		// Set no flux BC (z-dir.)
+		for (int i=1; i<nx+1; i++) {
+			for (int j=1; j<ny+1; j++) {
+				a[0 + j*delj + i*deli] = a[2 + j*delj + i*deli];
+				a[(nz+1) + j*delj + i*deli] = a[(nz-1) + j*delj + i*deli];
+			}
+		}
+	}
+}
+
 
 
 // -------------------------------------------------------------------------

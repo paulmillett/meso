@@ -38,6 +38,9 @@ OPFZoneTempFD::OPFZoneTempFD(const CommonParams& pin,
 	tempSpace1 = input_params("PFApp/tempSpace1",10);
 	tempSpace2 = input_params("PFApp/tempSpace2",10);
 	tempSpace3 = input_params("PFApp/tempSpace3",14.5);
+	bX = input_params("PFApp/bX",0);
+	bY = input_params("PFApp/bY",1);
+	bZ = input_params("PFApp/bZ",0);
 }
 
 // -------------------------------------------------------------------------
@@ -205,7 +208,7 @@ void OPFZoneTempFD::updatePhaseField()
     // calculate chemical potential & mobility
     // ---------------------------------------
 
-    c.updatePBCFluxY();
+    c.updateBoundaries(bX,bY,bZ);
 
     for (int i=1; i<nx+1; i++) {
 
@@ -270,8 +273,8 @@ void OPFZoneTempFD::updatePhaseField()
 	MPI::COMM_WORLD.Barrier();
 	
 	//update boundary conditions for mu and mobility
-    mu.updatePBCFluxY();
-    mob.updatePBCFluxY();
+    mu.updateBoundaries(bX,bY,bZ);
+    mob.updateBoundaries(bX,bY,bZ);
 	
 	// ---------------------------------------
     // Apply surface templating:
@@ -299,7 +302,7 @@ void OPFZoneTempFD::updatePhaseField()
 
 	//calculate first laplacian of CH right hand side
 	SfieldFD inside = mu - C_5*c.Laplacian();
-	inside.updatePBCFluxY();
+	inside.updateBoundaries(bX,bY,bZ);
 	
 	//calculate total right hand side of CH equation
 	SfieldFD RHS = inside.Laplacian(mob); 	
@@ -320,7 +323,7 @@ void OPFZoneTempFD::updatePhaseField()
         }
     }
 	
-	RHS.updatePBCFluxY();
+	RHS.updateBoundaries(bX,bY,bZ);
 	c += p.dt*RHS;
 }//updatePhaseField
 

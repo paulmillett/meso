@@ -32,6 +32,9 @@ private:
 	int tempSpace2;
 	double tempSpace3;
 	SfieldFD tempL;
+	bool bX;
+	bool bY;
+	bool bZ;
 public:
 
     OPFZoneTempFD(const CommonParams&, const GetPot&);
