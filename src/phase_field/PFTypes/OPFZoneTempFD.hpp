@@ -35,6 +35,7 @@ private:
 	bool bX;
 	bool bY;
 	bool bZ;
+	bool topWetting;
 public:
 
     OPFZoneTempFD(const CommonParams&, const GetPot&);

@@ -41,6 +41,7 @@ OPFZoneTempFD::OPFZoneTempFD(const CommonParams& pin,
 	bX = input_params("PFApp/bX",0);
 	bY = input_params("PFApp/bY",1);
 	bZ = input_params("PFApp/bZ",0);
+	topWetting = input_params("PFApp/topWetting",0);
 }
 
 // -------------------------------------------------------------------------
@@ -69,7 +70,7 @@ void OPFZoneTempFD::initPhaseField()
             for (int k=1; k<nz+1; k++) {
                 int ndx = i*deli + j*delj + k*delk;
                 double r = (double)rand()/RAND_MAX;
-                double val = co + 0.1*(r-0.5);
+                double val = co + 0.1*(r-0.5)*noiseStr;
                 c.setValue(ndx,val);
             }//i
         }//j
@@ -214,6 +215,7 @@ void OPFZoneTempFD::updatePhaseField()
 
 		//calculate local mobility
 		double Mc;
+		double Temp;
 		if (vzone != 0) { //if zone annealing is active
 			//calculate time 
 			double time = current_step*p.dt;
@@ -223,15 +225,14 @@ void OPFZoneTempFD::updatePhaseField()
 		
 			//calculate local mobility
 			Mc = 0.5*(1 - tanh(6.0*double(i-xf)/wzone));
+			Temp = Tmin + Mc*(Tmax - Tmin);
 		}//if zone annealing
 		else { 
 			//assign constant mobility
 			Mc = M;
+			Temp = Tmax;
 		}//else
 
-		//calculate local Temperature
-        double Temp = Tmin + Mc*(Tmax - Tmin);
-		
 		//calculate local chi-N
 		double chiN  = (beta + alpha/Temp)*N;
 		double chiN2 = chiN  * chiN;
@@ -294,6 +295,19 @@ void OPFZoneTempFD::updatePhaseField()
 			}//i
 		}//j
 	}//if templating
+	
+	if (topWetting)
+	{
+		//determine z position for (1)2d or (nz+1)3d simulation
+		int k = nz*(nz>1)+1;
+		// apply top surface
+		for (int j=1; j<ny+1; j++) {
+			for (int i=1; i<nx+1; i++) {
+				int ndx = i*deli + j*delj + k*delk;
+				c.setValue(ndx,0.0);
+			}//i
+		}//j
+	}//if topWetting
 	
 		
     // ---------------------------------------
