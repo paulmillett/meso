@@ -17,6 +17,7 @@ private:
     int nxyz;
     SfieldFD c;
     double co;
+	double initNoise;
     double M;
     double noiseStr;
 	double wzone;
@@ -36,6 +37,7 @@ private:
 	bool bY;
 	bool bZ;
 	bool topWetting;
+	bool bcp;
 public:
 
     OPFZoneTempFD(const CommonParams&, const GetPot&);

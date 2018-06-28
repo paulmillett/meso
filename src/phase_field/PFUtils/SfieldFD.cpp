@@ -243,8 +243,8 @@ void SfieldFD::updateBoundaries(bool bX, bool bY, bool bZ)
 		// Set no flux BC (z-dir.)
 		for (int i=1; i<nx+1; i++) {
 			for (int j=1; j<ny+1; j++) {
-				a[0 + j*delj + i*deli] = a[2 + j*delj + i*deli];
-				a[(nz+1) + j*delj + i*deli] = a[(nz-1) + j*delj + i*deli];
+				a[0 + j*delj + i*deli] = a[1 + j*delj + i*deli];
+				a[(nz+1) + j*delj + i*deli] = a[(nz) + j*delj + i*deli];
 			}
 		}
 	}
@@ -345,8 +345,8 @@ SfieldFD SfieldFD::Laplacian(const SfieldFD& b) const
                 double bz1 = 2.0/(1.0/b.getValue(ndx-delk) + 1.0/bo);
                 double bz2 = 2.0/(1.0/b.getValue(ndx+delk) + 1.0/bo);
                 double lapx = (a[ndx-deli]*bx1 + a[ndx+deli]*bx2 - (bx1+bx2)*a[ndx])/dx2;
-                double lapy = (a[ndx-delj]*by1 + a[ndx+delj]*by2 - (by1+by2)*a[ndx])/dx2;
-                double lapz = (a[ndx-delk]*bz1 + a[ndx+delk]*bz2 - (bz1+bz2)*a[ndx])/dx2;
+                double lapy = (a[ndx-delj]*by1 + a[ndx+delj]*by2 - (by1+by2)*a[ndx])/dy2;
+                double lapz = (a[ndx-delk]*bz1 + a[ndx+delk]*bz2 - (bz1+bz2)*a[ndx])/dz2;
                 lapl.setValue(ndx,lapx+lapy+lapz);
             }
         }
@@ -414,7 +414,6 @@ void SfieldFD::writeVTKFile(std::string tagname, int tagnum,
                             int ndx = k*delk + j*delj + i*deli;
                             outfile << fixed << setprecision(3) << a[ndx] << endl;
                         }
-
                     }
                 }
                 MPI::COMM_WORLD.Barrier();
