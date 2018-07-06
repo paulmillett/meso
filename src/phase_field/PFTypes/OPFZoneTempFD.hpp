@@ -17,6 +17,7 @@ private:
     int nxyz;
     SfieldFD c;
     double co;
+	double initNoise;
     double M;
     double noiseStr;
 	double wzone;
@@ -28,9 +29,15 @@ private:
 	double alpha;
 	double beta;
 	int templating;
-	int templateSpacing;
-	int templateSpacingY;
-
+	int tempSpace1;
+	int tempSpace2;
+	double tempSpace3;
+	SfieldFD tempL;
+	bool bX;
+	bool bY;
+	bool bZ;
+	bool topWetting;
+	bool bcp;
 public:
 
     OPFZoneTempFD(const CommonParams&, const GetPot&);
