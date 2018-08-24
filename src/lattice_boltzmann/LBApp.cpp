@@ -8,17 +8,51 @@ using namespace std;
 // Constructor:
 // -------------------------------------------------------------------------
 
-LBApp::LBApp(const GetPot& InputParams)
+LBApp::LBApp(const GetPot& input_params)
 {
 
-   //	---------------------------------------
-   //	create a CHSpecies object:
-   //	---------------------------------------
+	// ---------------------------------------
+	// Assign variables from 'input_params':
+	// ---------------------------------------
 
-   cout << "Hello from LBApp..." << endl;
+	p.NX = input_params("Domain/nx",1);
+	p.NY = input_params("Domain/ny",1);
+	p.NZ = input_params("Domain/nz",1);
+	p.dx = input_params("Domain/dx",1.0);
+	p.dy = input_params("Domain/dy",1.0);
+	p.dz = input_params("Domain/dz",1.0);
+	p.dt = input_params("Time/dt",1.0);
+	p.nstep = input_params("Time/nstep",1);
+	p.iskip = input_params("Output/iskip",1);
+	p.jskip = input_params("Output/jskip",1);
+	p.kskip = input_params("Output/kskip",1);
+	p.LX = p.NX*p.dx;
+	p.LY = p.NY*p.dy;
+	p.LZ = p.NZ*p.dz;
 
-   //lb_system = new LBSystem(InputParams);
-   mcmp_object = new mcmp(InputParams);
+	// ---------------------------------------
+	// Get some MPI parameters:
+	// ---------------------------------------
+
+	p.np = MPI::COMM_WORLD.Get_size();   // # of processors
+	p.rank = MPI::COMM_WORLD.Get_rank(); // my processor number
+	p.nbrL = (p.rank-1) + ((p.rank-1) < 0)*p.np;        // left proc. neighbor
+	p.nbrR = (p.rank+1) - ((p.rank+1) > (p.np-1))*p.np; // right proc. neighbor
+
+	// ---------------------------------------
+	// Set dimensions:
+	// ---------------------------------------
+
+	p.nx = locnx;   // insert code to find locnx (perhaps using FFTw)
+	p.ny = p.NY;
+	p.nz = p.NZ;
+	p.xOff = offx;
+
+	// ---------------------------------------
+	// Create a PF object:
+	// ---------------------------------------
+
+	lb_object = LBBaseClass::LBFactory(p,input_params);
 
 }
 
@@ -30,8 +64,7 @@ LBApp::LBApp(const GetPot& InputParams)
 
 LBApp::~LBApp()
 {
-   //delete lb_system;
-   delete mcmp_object;
+	delete lb_object;
 }
 
 
@@ -42,14 +75,7 @@ LBApp::~LBApp()
 
 void LBApp::initSystem()
 {
-   current_step = 0;
-   int iskip = 1;
-   int jskip = 1;
-   int kskip = 1;
-   //lb_system->parseInitialCondition();
-   //lb_system->writeVTKFile("rho",current_step,iskip,jskip,kskip);
-   mcmp_object->initializeMCMP();
-   mcmp_object->writeVTKFile("rhoA",current_step,iskip,jskip,kskip);
+	lb_object->initLatticeBoltzmann();
 }
 
 
@@ -61,52 +87,18 @@ void LBApp::initSystem()
 void LBApp::stepForward(int step)
 {
 
-   current_step = step;
-   mcmp_object->setTimeStep(current_step);
-   mcmp_object->updateMCMP();
+	// ----------------------------------------
+	//	Set the time step:
+	// ----------------------------------------
 
-   // // ----------------------------------------
-   // //	Set the time step:
-   // // ----------------------------------------
-   //
-   // current_step = step;
-   // lb_system->setTimeStep(current_step);
-   //
-   // // ----------------------------------------
-   // //	Calculate macro's:
-   // // ----------------------------------------
-   //
-   // lb_system->calculateMacros();
-   //
-   // // ----------------------------------------
-   // //	Calculate fluid forces:
-   // // ----------------------------------------
-   //
-   // lb_system->parseFluidForces();
-   //
-   // // ----------------------------------------
-   // //	Equilibrium distribution:
-   // // ----------------------------------------
-   //
-   // lb_system->equilibriumDistribution();
-   //
-   // // ----------------------------------------
-   // //	Collision:
-   // // ----------------------------------------
-   //
-   // lb_system->collisionStep();
-   //
-   // // ----------------------------------------
-   // //	Streaming:
-   // // ----------------------------------------
-   //
-   // lb_system->streamingStep();
-   //
-   // // ----------------------------------------
-   // //	Bounce-back off solid surfaces:
-   // // ----------------------------------------
-   //
-   // lb_system->bounceBack();
+	current_step = step;
+	lb_object->setTimeStep(current_step);
+
+	// ----------------------------------------
+	//	Update CH system:
+	// ----------------------------------------
+
+	lb_object->updateLatticeBoltzmann();
 
 }
 
@@ -118,9 +110,5 @@ void LBApp::stepForward(int step)
 
 void LBApp::writeOutput(int step)
 {
-   int iskip = 1;
-   int jskip = 1;
-   int kskip = 1;
-   //lb_system->writeVTKFile("rho",step,iskip,jskip,kskip);
-   mcmp_object->writeVTKFile("rhoA",step,iskip,jskip,kskip);
+	lb_object->outputLatticeBoltzmann();
 }

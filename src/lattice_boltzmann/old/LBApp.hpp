@@ -2,20 +2,18 @@
 # ifndef LBAPP_H
 # define LBAPP_H
 
-# include <mpi.h>
 # include <vector>
 # include "../base/MesoBase.hpp"
-# include "../utils/CommonParams.h"
-# include "LBBaseClass.hpp"
-
+# include "LBSystem.hpp"
+# include "mcmp.hpp"
 
 class LBApp : public MesoBase {
-	
+
 private:
 
 	int current_step;
-	CommonParams p;
-	LBBaseClass* lb_object;
+	LBSystem* lb_system;
+	mcmp* mcmp_object;
 
 public:
 
