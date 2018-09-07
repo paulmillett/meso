@@ -1,5 +1,5 @@
 
-# include "mcmp3D.hpp"
+# include "scmp3D.hpp"
 
 
 
@@ -7,8 +7,8 @@
 // Constructor:
 // -------------------------------------------------------------------------
 
-mcmp3D::mcmp3D(const CommonParams& pin, const GetPot& input_params) : 
-               p(pin), fA(p), fB(p), s()
+scmp3D::scmp3D(const CommonParams& pin, const GetPot& input_params) : 
+               p(pin), fA(p), s()
 {
 
 	// ---------------------------------------
@@ -18,15 +18,11 @@ mcmp3D::mcmp3D(const CommonParams& pin, const GetPot& input_params) :
 	deli = (p.ny+2)*(p.nz+2);
 	delj = (p.nz+2);
 	delk = 1;
-	G = input_params("LBApp/G",3.0);
+	G = input_params("LBApp/G",-6.0);
 	rhoAi = input_params("LBApp/rhoAi",0.5);
-	rhoBi = input_params("LBApp/rhoBi",0.5);
 	rhoAi_noise = input_params("LBApp/rhoAi_noise",0.1);
-	rhoBi_noise = input_params("LBApp/rhoBi_noise",0.1);
 	double tauA = input_params("LBApp/tauA",1.0);
-	double tauB = input_params("LBApp/tauB",1.0);
 	fA.setTau(tauA);
-	fB.setTau(tauB);	
 	
 	// ---------------------------------------
 	// establish stencil type:
@@ -35,7 +31,6 @@ mcmp3D::mcmp3D(const CommonParams& pin, const GetPot& input_params) :
 	string stype = input_params("LBApp/stencil","D3Q19");
 	s.setStencil(stype);
 	fA.allocateFs(s);
-	fB.allocateFs(s);
 
 }
 
@@ -45,7 +40,7 @@ mcmp3D::mcmp3D(const CommonParams& pin, const GetPot& input_params) :
 // Destructor:
 // -------------------------------------------------------------------------
 
-mcmp3D::~mcmp3D()
+scmp3D::~scmp3D()
 {
 
 }
@@ -56,7 +51,7 @@ mcmp3D::~mcmp3D()
 // Initialize lattice-boltzmann method:
 // -------------------------------------------------------------------------
 
-void mcmp3D::initLatticeBoltzmann()
+void scmp3D::initLatticeBoltzmann()
 {
 
 	// ---------------------------------------
@@ -70,26 +65,19 @@ void mcmp3D::initLatticeBoltzmann()
 			for (int k=1; k<p.nz+1; k++) {
 				int ndx = i*deli + j*delj + k*delk;
 				double rA = (double)rand()/RAND_MAX;
-				double rB = (double)rand()/RAND_MAX;
 				// assign initial rho values:
 				fA.setRho(ndx,rhoAi + rhoAi_noise*(rA-0.5));
-				fB.setRho(ndx,rhoBi + rhoBi_noise*(rB-0.5));
 				// assign initial velocity values:
 				fA.setU(ndx,0.0);
 				fA.setV(ndx,0.0);
-				fA.setW(ndx,0.0);
-				fB.setU(ndx,0.0);
-				fB.setV(ndx,0.0);
-				fB.setW(ndx,0.0);
+				fA.setW(ndx,0.0);				
 			}			
 		}
 	}
 	
 	fA.ghostNodesRho();
-	fB.ghostNodesRho();
 	calculateShanChenForces();
 	fA.setFtoFeq(s);
-	fB.setFtoFeq(s);
 
 }
 
@@ -99,7 +87,7 @@ void mcmp3D::initLatticeBoltzmann()
 // Step forward in time the lattice-boltzmann method:
 // -------------------------------------------------------------------------
 
-void mcmp3D::updateLatticeBoltzmann()
+void scmp3D::updateLatticeBoltzmann()
 {
 	
     // ---------------------------------------
@@ -114,11 +102,10 @@ void mcmp3D::updateLatticeBoltzmann()
 	
 	bool exchangeGhostRho = true;
 	fA.macros(s,exchangeGhostRho);
-	fB.macros(s,exchangeGhostRho);
 	
 	// ---------------------------------------
 	// Interfluid forces & common velocities:
-	// (Shan-Chen mcmp model)
+	// (Shan-Chen scmp model)
 	// ---------------------------------------
 	
 	calculateShanChenForces();
@@ -128,7 +115,6 @@ void mcmp3D::updateLatticeBoltzmann()
 	// ---------------------------------------
 
 	fA.collideStreamUpdate(s);
-	fB.collideStreamUpdate(s);
 
 }
 
@@ -138,7 +124,7 @@ void mcmp3D::updateLatticeBoltzmann()
 // Write output for the lattice-boltzmann method:
 // -------------------------------------------------------------------------
 
-void mcmp3D::outputLatticeBoltzmann()
+void scmp3D::outputLatticeBoltzmann()
 {
 	int iskip = p.iskip;
 	int jskip = p.jskip;
@@ -152,7 +138,7 @@ void mcmp3D::outputLatticeBoltzmann()
 // Shan-Chen multi-component, multi-phase model:
 // -------------------------------------------------------------------------
 
-void mcmp3D::calculateShanChenForces()
+void scmp3D::calculateShanChenForces()
 {
 	
 	for (int i=1; i<p.nx+1; i++) {
@@ -163,60 +149,28 @@ void mcmp3D::calculateShanChenForces()
 			
 				// get rho's & psi(rho)'s
 				double rhoA = fA.getRho(ndx);
-				double rhoB = fB.getRho(ndx);
 				double psi_rhoA = psi(rhoA);
-				double psi_rhoB = psi(rhoB);
 			
 				// sum forces from neighboring nodes
 				double GsumxA = 0.0;
 				double GsumyA = 0.0;
-				double GsumzA = 0.0;
-				double GsumxB = 0.0;
-				double GsumyB = 0.0;
-				double GsumzB = 0.0;
+				double GsumzA = 0.0;				
 				for (int n=0; n<s.nn; n++) {
 					int inbr = i + s.exi[n];
 					int jnbr = j + s.eyi[n];
 					int knbr = k + s.ezi[n];
 					int nbr  = inbr*deli + jnbr*delj + knbr*delk;
 					double rhoA_nbr = fA.getRho(nbr);
-					double rhoB_nbr = fB.getRho(nbr);
 					double psi_rhoA_nbr = psi(rhoA_nbr);
-					double psi_rhoB_nbr = psi(rhoB_nbr);
 					GsumxA += s.wa[n]*s.ex[n]*psi_rhoA_nbr;
 					GsumyA += s.wa[n]*s.ey[n]*psi_rhoA_nbr;
-					GsumzA += s.wa[n]*s.ez[n]*psi_rhoA_nbr;
-					GsumxB += s.wa[n]*s.ex[n]*psi_rhoB_nbr;
-					GsumyB += s.wa[n]*s.ey[n]*psi_rhoB_nbr;
-					GsumzB += s.wa[n]*s.ez[n]*psi_rhoB_nbr;
+					GsumzA += s.wa[n]*s.ez[n]*psi_rhoA_nbr;					
 				}
 			
 				// calculate interfluid forces
-				fA.setFx(ndx,-G*psi_rhoA*GsumxB);
-				fA.setFy(ndx,-G*psi_rhoA*GsumyB);
-				fA.setFz(ndx,-G*psi_rhoA*GsumzB);
-				fB.setFx(ndx,-G*psi_rhoB*GsumxA);
-				fB.setFy(ndx,-G*psi_rhoB*GsumyA);
-				fB.setFz(ndx,-G*psi_rhoB*GsumzA);
-			
-				// also, set common velocities (Shan-Chen model)
-				double urdivtauA = fA.getURhoDivTau(ndx);
-				double vrdivtauA = fA.getVRhoDivTau(ndx);
-				double wrdivtauA = fA.getWRhoDivTau(ndx);
-				double urdivtauB = fB.getURhoDivTau(ndx);
-				double vrdivtauB = fB.getVRhoDivTau(ndx);
-				double wrdivtauB = fB.getWRhoDivTau(ndx);
-				double rdivtauA = fA.getRhoDivTau(ndx);
-				double rdivtauB = fB.getRhoDivTau(ndx);			
-				double uP = (urdivtauA + urdivtauB)/(rdivtauA + rdivtauB);
-				double vP = (vrdivtauA + vrdivtauB)/(rdivtauA + rdivtauB);
-				double wP = (wrdivtauA + wrdivtauB)/(rdivtauA + rdivtauB);
-				fA.setU(ndx,uP);  // u-prime  (common velocities)
-				fA.setV(ndx,vP);  // v-prime
-				fA.setW(ndx,wP);  // w-prime
-				fB.setU(ndx,uP);  // u-prime
-				fB.setV(ndx,vP);  // v-prime
-				fB.setW(ndx,wP);  // w-prime
+				fA.setFx(ndx,-G*psi_rhoA*GsumxA);
+				fA.setFy(ndx,-G*psi_rhoA*GsumyA);
+				fA.setFz(ndx,-G*psi_rhoA*GsumzA);				
 			
 			}			
 		}
@@ -230,7 +184,7 @@ void mcmp3D::calculateShanChenForces()
 // Potential function of the fluid density:
 // -------------------------------------------------------------------------
 
-double mcmp3D::psi(double rho)
+double scmp3D::psi(double rho)
 {
    return (1.0 - exp(-rho));
 }
