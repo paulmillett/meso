@@ -36,6 +36,7 @@ public:
    virtual ~MesoBase()
    {
    }
+   
 };
 
 # endif  // MESOBASE_H

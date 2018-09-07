@@ -4,7 +4,7 @@
 # define LATTICE_H
 
 # include "PDInits_BaseClass.hpp"
-# include <exception>
+# include <stdexcept>
 
 /*
    This is an implementation of the 'PDInits_BaseClass' base class.

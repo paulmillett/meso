@@ -29,5 +29,7 @@ PDForces_BaseClass* PDForces_BaseClass::PDForcesFactory(const GetPot& p,
 
     if (fij_type == "Hertz") return new Hertz(p,r,v,f,rad);
     if (fij_type == "Dipole") return new Dipole(p,r,v,f,rad);
+    // if input file doesn't have a correct type return a nullptr
+    return NULL;
 
 }

@@ -29,7 +29,15 @@ public:
    virtual void updateLatticeBoltzmann() = 0;
    virtual void outputLatticeBoltzmann() = 0;
    virtual void setTimeStep(int) = 0;
+   
+   // -------------------------------------------------------------------
+   // virtual destructor:
+   // -------------------------------------------------------------------
 
-}
+   virtual ~LBBaseClass()
+   {
+   }
+
+};
 
 # endif  // LBBASECLASS_H

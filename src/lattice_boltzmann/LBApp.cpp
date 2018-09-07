@@ -42,14 +42,27 @@ LBApp::LBApp(const GetPot& input_params)
 	// ---------------------------------------
 	// Set dimensions:
 	// ---------------------------------------
+	
+	int nxAve = int(p.NX/p.np);
+	int nxExtra = p.NX%p.np;
+	int nxLoc = nxAve;
+	if ((p.rank+1) <= nxExtra) nxLoc = nxAve + 1;
+	
+	int xOff = 0;
+	for (int i=0; i<p.rank; i++) {
+		if (i+1 <= nxExtra) xOff += nxAve + 1;
+		if (i+1  > nxExtra) xOff += nxAve;
+	}
 
-	p.nx = locnx;   // insert code to find locnx (perhaps using FFTw)
+	p.nx = nxLoc;
 	p.ny = p.NY;
 	p.nz = p.NZ;
-	p.xOff = offx;
+	p.xOff = xOff;
+	
+	cout << p.rank << " " << p.nx << " " << p.xOff << endl;
 
 	// ---------------------------------------
-	// Create a PF object:
+	// Create a LB object:
 	// ---------------------------------------
 
 	lb_object = LBBaseClass::LBFactory(p,input_params);

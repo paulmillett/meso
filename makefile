@@ -17,6 +17,7 @@ LFLAGS = -lfftw3_mpi -lfftw3 -lm
 #################
 
 CPP_FILES = $(wildcard	src/lattice_boltzmann/*.cpp \
+						src/lattice_boltzmann/*/*.cpp \
 						src/phase_field/*.cpp \
 						src/phase_field/*/*.cpp \
 						src/particle_dynamics/*.cpp \

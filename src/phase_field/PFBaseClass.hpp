@@ -37,6 +37,7 @@ public:
    virtual ~PFBaseClass()
    {
    }
+   
 };
 
 # endif  // PFBASECLASS_H

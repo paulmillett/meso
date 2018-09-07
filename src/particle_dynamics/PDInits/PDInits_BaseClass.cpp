@@ -31,6 +31,7 @@ PDInits_BaseClass* PDInits_BaseClass::PDInitFactory(const GetPot& p,
    if (ic_type == "cubicLattice") return new CubicLattice(p,r,v,rad);
    if (ic_type == "random") return new Random(p,r,v,rad);
    if (ic_type == "lattice") return new Lattice(p,r,v,rad);
-   throw runtime_error("Particle initial condition type not recognized!");
+   // if input file doesn't have a correct type return a nullptr
+   return NULL;
 
 }

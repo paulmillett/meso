@@ -1,5 +1,5 @@
-# ifndef LBFLUID2D_H
-# define LBFLUID2D_H
+# ifndef LBFLUID3D_H
+# define LBFLUID3D_H
 
 # include "../../utils/CommonParams.h"
 # include "Stencil.hpp"
@@ -8,45 +8,48 @@
 # include <mpi.h>
 
 
-class LBfluid2D {
+class LBfluid3D {
 
 private:
 
     const CommonParams& p;
     static int instance_count;
     int tag;
-    int NX,NY;
-    int nx,ny;
-    int gx,gy;
-    int nxy,gxy;
-    int deli,delj;
+    int NX,NY,NZ;
+    int nx,ny,nz;
+    int gx,gy,gz;
+    int nxyz,gxyz;
+    int deli,delj,delk;
     int rank,np;
     int xOffset;
     int nbrL,nbrR;
 	double tau;
-	std::vector<double> u,v,r;
-	std::vector<double> fx,fy;
+	std::vector<double> u,v,w,r;
+	std::vector<double> fx,fy,fz;
 	std::vector<double> f,fstream;	
 
 public:
 
-	LBfluid2D(const CommonParams&);
-	~LBfluid2D();
+	LBfluid3D(const CommonParams&);
+	~LBfluid3D();
 	void allocateFs(const Stencil&);
 	void setTau(double);
 	void setRho(int,double);
     void setFx(int,double);
     void setFy(int,double);
+	void setFz(int,double);
 	void setU(int,double);
 	void setV(int,double);
+	void setW(int,double);
 	double getRho(int) const;
 	double getURhoDivTau(int) const;
 	double getVRhoDivTau(int) const;
+	double getWRhoDivTau(int) const;
 	double getRhoDivTau(int) const;
 	void setFtoFeq(const Stencil&);
 	void macros(const Stencil&, const bool);	
 	void collideStreamUpdate(const Stencil&);
-    void writeVTKFile(std::string,int,int,int);
+    void writeVTKFile(std::string,int,int,int,int);
 	void ghostNodesStreaming(const Stencil&);
 	void ghostNodesRho();
 
@@ -56,4 +59,4 @@ private:
 
 };
 
-# endif  // LBFLUID2D_H
+# endif  // LBFLUID3D_H
