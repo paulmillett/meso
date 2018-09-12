@@ -49,9 +49,11 @@ public:
 	void setFtoFeq(const Stencil&);
 	void macros(const Stencil&, const bool);	
 	void collideStreamUpdate(const Stencil&);
+	void bounceBackWallsZdir(const Stencil&);
     void writeVTKFile(std::string,int,int,int,int);
 	void ghostNodesStreaming(const Stencil&);
 	void ghostNodesRho();
+	int fndx(int,int,int,int,int);
 
 private:
 		

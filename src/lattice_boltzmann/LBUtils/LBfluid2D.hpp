@@ -46,6 +46,7 @@ public:
 	void setFtoFeq(const Stencil&);
 	void macros(const Stencil&, const bool);	
 	void collideStreamUpdate(const Stencil&);
+	void bounceBackWallsYdir(const Stencil&);
     void writeVTKFile(std::string,int,int,int);
 	void ghostNodesStreaming(const Stencil&);
 	void ghostNodesRho();
@@ -53,6 +54,7 @@ public:
 private:
 		
 	void mpiExchange(std::vector<double>&,int,int);
+	int fndx(int,int,int,int);
 
 };
 

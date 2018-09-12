@@ -271,6 +271,43 @@ void LBfluid2D::collideStreamUpdate(const Stencil& s)
 
 
 // -------------------------------------------------------------------------
+// Bounce-back conditions for walls located at y=1 and y=NY.
+// Assumptions: 
+//  1.) streaming has already been performed, so we 
+//  must retroactively implement the bounce-back conditions.
+//  2.) the D2Q9 stencil is implemented as defined in the class, Stencil.
+// -------------------------------------------------------------------------
+
+void LBfluid2D::bounceBackWallsYdir(const Stencil& s)
+{
+			
+	int nn = s.nn;
+	
+	for (int i=1; i<nx+1; i++) {
+		
+		// -----------------------------------
+		// y=2 nodes:
+		// -----------------------------------
+				
+		f[ fndx(i,2,3,nn) ] = fstream[ fndx(i,2,4,nn) ];
+		f[ fndx(i,2,5,nn) ] = fstream[ fndx(i,2,6,nn) ];
+		f[ fndx(i,2,7,nn) ] = fstream[ fndx(i,2,8,nn) ];
+						
+		// -----------------------------------
+		// y=NY-1 nodes:
+		// -----------------------------------
+				
+		f[ fndx(i,ny-1,4,nn) ] = fstream[ fndx(i,ny-1,3,nn) ];
+		f[ fndx(i,ny-1,6,nn) ] = fstream[ fndx(i,ny-1,5,nn) ];
+		f[ fndx(i,ny-1,8,nn) ] = fstream[ fndx(i,ny-1,7,nn) ];
+				
+	}
+	
+}
+
+
+
+// -------------------------------------------------------------------------
 // Write rho values to 'vtk' file:
 // -------------------------------------------------------------------------
 
@@ -390,8 +427,8 @@ void LBfluid2D::ghostNodesStreaming(const Stencil& s)
 
     for (int i=0; i<nx+2; i++) {
 		for (int n=0; n<s.nn; n++) {
-			fstream[(i*deli + 0*delj)*s.nn + n] = fstream[(i*deli + ny*delj)*s.nn + n];
-			fstream[(i*deli + (ny+1)*delj)*s.nn + n] = fstream[(i*deli + 1*delj)*s.nn + n];
+			fstream[ fndx(i,0,   n,s.nn) ] = fstream[ fndx(i,ny,n,s.nn) ];
+			fstream[ fndx(i,ny+1,n,s.nn) ] = fstream[ fndx(i,1, n,s.nn) ];
 		}
 	}
 	
@@ -432,4 +469,15 @@ void LBfluid2D::mpiExchange(std::vector<double>& a, int size, int cNum)
 	MPI::COMM_WORLD.Sendrecv(&a[ondx],size,MPI::DOUBLE,nbrR,stamp,
 	                         &a[indx],size,MPI::DOUBLE,nbrL,stamp,status);
 	
+}
+
+
+
+// -------------------------------------------------------------------------
+// Index calculator for the 'f' and 'fstream' arrays:
+// -------------------------------------------------------------------------
+
+int LBfluid2D::fndx(int i, int j, int n, int nn) 
+{
+	return (i*deli + j*delj)*nn + n;
 }

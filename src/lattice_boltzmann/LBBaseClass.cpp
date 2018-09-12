@@ -9,6 +9,8 @@
 # include "LBTypes/mcmp2D.hpp"
 # include "LBTypes/mcmp3D.hpp"
 # include "LBTypes/scmp3D.hpp"
+# include "LBTypes/mcmp2DFilm.hpp"
+# include "LBTypes/mcmp3DFilm.hpp"
 
 // -------------------------------------------------------------------------
 // Factory method: this function returns an object determined
@@ -32,6 +34,8 @@ LBBaseClass* LBBaseClass::LBFactory(const CommonParams& p,
     if (lb_type == "mcmp2D") return new mcmp2D(p,input_params);
 	if (lb_type == "mcmp3D") return new mcmp3D(p,input_params);
 	if (lb_type == "scmp3D") return new scmp3D(p,input_params);
+	if (lb_type == "mcmp2DFilm") return new mcmp2DFilm(p,input_params);
+	if (lb_type == "mcmp3DFilm") return new mcmp3DFilm(p,input_params);
 	
     // if input file doesn't have a correct type return a nullptr
     return NULL;

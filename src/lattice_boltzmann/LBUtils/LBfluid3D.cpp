@@ -306,6 +306,49 @@ void LBfluid3D::collideStreamUpdate(const Stencil& s)
 
 
 // -------------------------------------------------------------------------
+// Bounce-back conditions for walls located at z=1 and z=NZ.
+// Assumptions: 
+//  1.) streaming has already been performed, so we 
+//  must retroactively implement the bounce-back conditions.
+//  2.) the D3Q19 stencil is implemented as defined in the class, Stencil.
+// -------------------------------------------------------------------------
+
+void LBfluid3D::bounceBackWallsZdir(const Stencil& s)
+{
+			
+	int nn = s.nn;
+	
+	for (int i=1; i<nx+1; i++) {
+		for (int j=1; j<ny+1; j++) {
+		
+			// -----------------------------------
+			// z=2 nodes:
+			// -----------------------------------
+				
+			f[ fndx(i,j,2,5 ,nn) ] = fstream[ fndx(i,j,2,6 ,nn) ];
+			f[ fndx(i,j,2,9 ,nn) ] = fstream[ fndx(i,j,2,10,nn) ];
+			f[ fndx(i,j,2,11,nn) ] = fstream[ fndx(i,j,2,12,nn) ];
+			f[ fndx(i,j,2,16,nn) ] = fstream[ fndx(i,j,2,15,nn) ];
+			f[ fndx(i,j,2,18,nn) ] = fstream[ fndx(i,j,2,17,nn) ];
+						
+			// -----------------------------------
+			// z=NZ-1 nodes:
+			// -----------------------------------
+				
+			f[ fndx(i,j,nz-1,6 ,nn) ] = fstream[ fndx(i,j,nz-1,5 ,nn) ];
+			f[ fndx(i,j,nz-1,10,nn) ] = fstream[ fndx(i,j,nz-1,9 ,nn) ];
+			f[ fndx(i,j,nz-1,12,nn) ] = fstream[ fndx(i,j,nz-1,11,nn) ];	
+			f[ fndx(i,j,nz-1,15,nn) ] = fstream[ fndx(i,j,nz-1,16,nn) ];	
+			f[ fndx(i,j,nz-1,17,nn) ] = fstream[ fndx(i,j,nz-1,18,nn) ];	
+			
+		}						
+	}
+	
+}
+
+
+
+// -------------------------------------------------------------------------
 // Write rho values to 'vtk' file:
 // -------------------------------------------------------------------------
 
@@ -441,8 +484,8 @@ void LBfluid3D::ghostNodesStreaming(const Stencil& s)
     for (int i=0; i<nx+2; i++) {
 		for (int k=0; k<nz+2; k++) {
 			for (int n=0; n<s.nn; n++) {
-				fstream[(i*deli + 0*delj + k*delk)*s.nn + n] = fstream[(i*deli + ny*delj + k*delk)*s.nn + n];
-				fstream[(i*deli + (ny+1)*delj + k*delk)*s.nn + n] = fstream[(i*deli + 1*delj + k*delk)*s.nn + n];
+				fstream[ fndx(i,0   ,k,n,s.nn) ] = fstream[ fndx(i,ny,k,n,s.nn) ];
+				fstream[ fndx(i,ny+1,k,n,s.nn) ] = fstream[ fndx(i,1 ,k,n,s.nn) ];
 			}
 		}
 	}
@@ -454,8 +497,8 @@ void LBfluid3D::ghostNodesStreaming(const Stencil& s)
     for (int i=0; i<nx+2; i++) {
 		for (int j=0; j<ny+2; j++) {
 			for (int n=0; n<s.nn; n++) {
-				fstream[(i*deli + j*delj + 0*delk)*s.nn + n] = fstream[(i*deli + j*delj + nz*delk)*s.nn + n];
-				fstream[(i*deli + j*delj + (nz+1)*delk)*s.nn + n] = fstream[(i*deli + j*delj + 1*delk)*s.nn + n];
+				fstream[ fndx(i,j,0   ,n,s.nn) ] = fstream[ fndx(i,j,nz,n,s.nn) ];
+				fstream[ fndx(i,j,nz+1,n,s.nn) ] = fstream[ fndx(i,j,1 ,n,s.nn) ];
 			}
 		}
 	}
@@ -497,4 +540,15 @@ void LBfluid3D::mpiExchange(std::vector<double>& a, int size, int cNum)
 	MPI::COMM_WORLD.Sendrecv(&a[ondx],size,MPI::DOUBLE,nbrR,stamp,
 	                         &a[indx],size,MPI::DOUBLE,nbrL,stamp,status);
 	
+}
+
+
+
+// -------------------------------------------------------------------------
+// Index calculator for the 'f' and 'fstream' arrays:
+// -------------------------------------------------------------------------
+
+int LBfluid3D::fndx(int i, int j, int k, int n, int nn) 
+{
+	return (i*deli + j*delj + k*delk)*nn + n;
 }
