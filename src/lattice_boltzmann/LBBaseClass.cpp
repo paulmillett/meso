@@ -21,15 +21,15 @@ LBBaseClass* LBBaseClass::LBFactory(const CommonParams& p,
                                     const GetPot& input_params)
 {
 
-    // -----------------------------------
-    // identify the requested object:
-    // -----------------------------------
+	// -----------------------------------
+	// identify the requested object:
+	// -----------------------------------
 
-    string lb_type = input_params("LBApp/type","mcmp2D");
+	string lb_type = input_params("LBApp/type","mcmp2D");
 
-    // -----------------------------------
-    // return the requested object:
-    // -----------------------------------
+	// -----------------------------------
+	// return the requested object:
+	// -----------------------------------
 
 	if (lb_type == "mcmp2D") return new mcmp2D(p,input_params);
 	if (lb_type == "mcmp3D") return new mcmp3D(p,input_params);
@@ -37,7 +37,7 @@ LBBaseClass* LBBaseClass::LBFactory(const CommonParams& p,
 	if (lb_type == "mcmp2DFilm") return new mcmp2DFilm(p,input_params);
 	if (lb_type == "mcmp3DFilm") return new mcmp3DFilm(p,input_params);
 	
-    // if input file doesn't have a correct type return a nullptr
-    return NULL;
+	// if input file doesn't have a correct type return a nullptr
+	return NULL;
 
 }
