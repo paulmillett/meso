@@ -67,7 +67,7 @@ void mcmp2DFilm::initLatticeBoltzmann()
 	srand(time(NULL)*(p.rank+1));   // set the random seed
 	
 	for (int i=1; i<p.nx+1; i++) {
-		for (int j=2; j<p.ny; j++) {    // neglect j=1 and j=ny rows			
+		for (int j=1; j<p.ny+1; j++) {			
 			int ndx = i*deli + j*delj;
 			double rA = (double)rand()/RAND_MAX;
 			double rB = (double)rand()/RAND_MAX;
@@ -104,15 +104,7 @@ void mcmp2DFilm::updateLatticeBoltzmann()
     // ---------------------------------------
 
     MPI::COMM_WORLD.Barrier();
-	
-	// ---------------------------------------
-	// Update macros:
-	// ---------------------------------------
-	
-	bool exchangeGhostRho = true;
-	fA.macros(s,exchangeGhostRho);
-	fB.macros(s,exchangeGhostRho);
-	
+		
 	// ---------------------------------------
 	// Interfluid forces & common velocities:
 	// (Shan-Chen mcmp model)
@@ -121,18 +113,14 @@ void mcmp2DFilm::updateLatticeBoltzmann()
 	calculateShanChenForces();
 		
 	// ---------------------------------------
-	// collide and streaming steps:
+	// Update LBM:
 	// ---------------------------------------
 
-	fA.collideStreamUpdate(s);
-	fB.collideStreamUpdate(s);
-	
-	// ---------------------------------------
-	// bounce-back conditions at y=1 and y=ny:
-	// ---------------------------------------
-	
-	fA.bounceBackWallsYdir(s);
-	fB.bounceBackWallsYdir(s);
+	int xBC = 0; 
+	int yBC = 1; 
+	bool exchangeGhostRho = true;
+	fA.updateFluid_SC(s,xBC,yBC,exchangeGhostRho);
+	fB.updateFluid_SC(s,xBC,yBC,exchangeGhostRho);
 
 }
 

@@ -58,8 +58,6 @@ LBApp::LBApp(const GetPot& input_params)
 	p.ny = p.NY;
 	p.nz = p.NZ;
 	p.xOff = xOff;
-	
-	cout << p.rank << " " << p.nx << " " << p.xOff << endl;
 
 	// ---------------------------------------
 	// Create a LB object:

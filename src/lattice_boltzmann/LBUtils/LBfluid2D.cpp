@@ -114,6 +114,16 @@ void LBfluid2D::setFy(int i, double val)
 	fy[i] = val;
 }
 
+void LBfluid2D::addFx(int i, double val)
+{
+	fx[i] += val;
+}
+
+void LBfluid2D::addFy(int i, double val)
+{
+	fy[i] += val;
+}
+
 void LBfluid2D::setU(int i, double val)
 {
 	u[i] = val;
@@ -124,11 +134,42 @@ void LBfluid2D::setV(int i, double val)
 	v[i] = val;
 }
 
+void LBfluid2D::zeroForces()
+{
+	for (int i=1; i<nx+1; i++) {
+		for (int j=1; j<ny+1; j++) {
+			int ndx = i*deli + j*delj;
+			fx[ndx] = 0.0;
+			fy[ndx] = 0.0;
+		}
+	}			
+}
+
 
 
 // -------------------------------------------------------------------------
 // Getters:
 // -------------------------------------------------------------------------
+
+double LBfluid2D::getU(int i) const
+{
+	return u[i];
+}
+
+double LBfluid2D::getV(int i) const
+{
+	return v[i];
+}
+
+double LBfluid2D::getUStar(int i) const
+{
+	return u[i] + 0.5*fx[i]/r[i];  // Shan-Chen physical velocity (u*)
+}
+
+double LBfluid2D::getVStar(int i) const
+{
+	return v[i] + 0.5*fy[i]/r[i];  // Shan-Chen physical velocity (v*)
+}
 
 double LBfluid2D::getRho(int i) const
 {
@@ -154,6 +195,7 @@ double LBfluid2D::getRhoDivTau(int i) const
 
 // -------------------------------------------------------------------------
 // Set 'f' to 'feq'... this is ONLY done during initialization:
+// (Assuming Shan-Chen forcing scheme)
 // -------------------------------------------------------------------------
 
 void LBfluid2D::setFtoFeq(const Stencil& s)
@@ -178,49 +220,12 @@ void LBfluid2D::setFtoFeq(const Stencil& s)
 
 
 // -------------------------------------------------------------------------
-// Update macro arrays: 'u', 'v', 'rho':
+// Update step:
+// (Assuming Shan-Chen forcing scheme)
 // -------------------------------------------------------------------------
 
-void LBfluid2D::macros(const Stencil& s, const bool ghostRho)
-{
-    
-	// ---------------------------------------
-	// update macros:
-	// ---------------------------------------
-	
-	for (int i=1; i<nx+1; i++) {
-		for (int j=1; j<ny+1; j++) {
-			int ndx = i*deli + j*delj;
-			double sum  = 0.0;
-			double sumx = 0.0;
-			double sumy = 0.0;
-			for (int n=0; n<s.nn; n++) {
-				int ndxn = ndx*s.nn + n;
-				sum  += f[ndxn];
-				sumx += f[ndxn]*s.ex[n];
-				sumy += f[ndxn]*s.ey[n];
-			}
-			r[ndx] = sum;
-			u[ndx] = sumx/r[ndx];
-			v[ndx] = sumy/r[ndx];
-		}
-	}
-	
-	// ---------------------------------------
-	// update rho on ghost nodes:
-	// ---------------------------------------
-	
-	if (ghostRho) ghostNodesRho();
-	
-}
-
-
-
-// -------------------------------------------------------------------------
-// Streaming step:
-// -------------------------------------------------------------------------
-
-void LBfluid2D::collideStreamUpdate(const Stencil& s)
+void LBfluid2D::updateFluid_SC(const Stencil& s, const int xBC, const int yBC, 
+                               const bool exchangeRho)
 {
 
 	// -----------------------------------
@@ -238,7 +243,7 @@ void LBfluid2D::collideStreamUpdate(const Stencil& s)
 				double evel = s.ex[n]*ueq + s.ey[n]*veq;
 				double feq = 1.0 + 3.0*evel + 4.5*evel*evel - 1.5*uv2;
 				feq *= r[ndx]*s.wa[n];
-				fstream[ndxn] = f[ndxn] - (f[ndxn] - feq)/tau;
+				fstream[ndxn] = f[ndxn] - (f[ndxn] - feq)/tau;	
 			}
 		}
 	}
@@ -265,6 +270,83 @@ void LBfluid2D::collideStreamUpdate(const Stencil& s)
 			}
 		}
 	}
+	
+	// -----------------------------------
+	// boundary conditions:
+	// -----------------------------------
+	
+	if (xBC == 1) bounceBackWallsXdir(s);
+	if (yBC == 1) bounceBackWallsYdir(s);
+	
+	// -----------------------------------
+	// update macros:
+	// -----------------------------------
+	
+	for (int i=1; i<nx+1; i++) {
+		for (int j=1; j<ny+1; j++) {
+			int ndx = i*deli + j*delj;
+			double sum  = 0.0;
+			double sumx = 0.0;
+			double sumy = 0.0;
+			for (int n=0; n<s.nn; n++) {
+				int ndxn = ndx*s.nn + n;
+				sum  += f[ndxn];
+				sumx += f[ndxn]*s.ex[n];
+				sumy += f[ndxn]*s.ey[n];
+			}
+			r[ndx] = sum;
+			u[ndx] = sumx/r[ndx];
+			v[ndx] = sumy/r[ndx];
+		}
+	}
+	
+	// -----------------------------------
+	// update rho on ghost nodes:
+	// (this is only needed if rho values
+	//  on neighrboring sites are needed,
+	//  e.g. scmp & mcmp simulations)
+	// -----------------------------------
+	
+	if (exchangeRho) ghostNodesRho();
+	
+}
+
+
+
+// -------------------------------------------------------------------------
+// Bounce-back conditions for walls located at x=1 and x=NX.
+// Assumptions: 
+//  1.) streaming has already been performed, so we 
+//  must retroactively implement the bounce-back conditions.
+//  2.) the D2Q9 stencil is implemented as defined in the class, Stencil.
+// -------------------------------------------------------------------------
+
+void LBfluid2D::bounceBackWallsXdir(const Stencil& s)
+{
+	
+	/*		
+	int nn = s.nn;
+		
+	for (int i=1; i<nx+1; i++) {
+		
+		// -----------------------------------
+		// y=2 nodes:
+		// -----------------------------------
+				
+		f[ fndx(i,2,3,nn) ] = fstream[ fndx(i,2,4,nn) ];
+		f[ fndx(i,2,5,nn) ] = fstream[ fndx(i,2,6,nn) ];
+		f[ fndx(i,2,7,nn) ] = fstream[ fndx(i,2,8,nn) ];
+						
+		// -----------------------------------
+		// y=NY-1 nodes:
+		// -----------------------------------
+				
+		f[ fndx(i,ny-1,4,nn) ] = fstream[ fndx(i,ny-1,3,nn) ];
+		f[ fndx(i,ny-1,6,nn) ] = fstream[ fndx(i,ny-1,5,nn) ];
+		f[ fndx(i,ny-1,8,nn) ] = fstream[ fndx(i,ny-1,7,nn) ];
+				
+	}
+	*/
 	
 }
 
@@ -337,7 +419,7 @@ void LBfluid2D::writeVTKFile(std::string tagname, int tagnum,
 		outfile << " " << endl;
 		outfile << "DATASET STRUCTURED_POINTS" << endl;
 		outfile << "DIMENSIONS" << d << NX/iskip << d << NY/jskip << d << 1 << endl;
-		outfile << "ORIGIN " << d << 0 << d << 0 << d << 0 << endl;
+		outfile << "ORIGIN " << d << 1 << d << 1 << d << 0 << endl;
 		outfile << "SPACING" << d << 1.0*iskip << d << 1.0*jskip << d << 1.0 << endl;
 		outfile << " " << endl;
 		outfile << "POINT_DATA " << (NX/iskip)*(NY/jskip) << endl;
@@ -348,7 +430,7 @@ void LBfluid2D::writeVTKFile(std::string tagname, int tagnum,
 	MPI::COMM_WORLD.Barrier();
 
 	// -----------------------------------
-	// Write the data:
+	// Write the 'rho' data:
 	// NOTE: x-data increases fastest,
 	//       then y-data
 	// -----------------------------------
@@ -369,7 +451,33 @@ void LBfluid2D::writeVTKFile(std::string tagname, int tagnum,
 			MPI::COMM_WORLD.Barrier();
 		}
 	}
-
+	
+	// -----------------------------------
+	// Write the 'velocity' data:
+	// NOTE: x-data increases fastest,
+	//       then y-data
+	// -----------------------------------
+	
+	if (rank == 0) {
+		outfile << "   " << endl;
+		outfile << "VECTORS Velocity float" << endl;
+	}
+		
+	for (int j=1; j<ny+1; j+=jskip) {
+		for (int p=0; p<np; p++) {
+			if (p == rank) {
+				for (int i=1; i<nx+1; i++) {
+					int ig = i + xOffset;
+					if (ig == 0 || ig%iskip == 0) {
+						int ndx = j*delj + i*deli;
+						outfile << fixed << setprecision(3) << getUStar(ndx) << " " << getVStar(ndx) << " " << 0.0 << endl;
+					}
+				}
+			}
+			MPI::COMM_WORLD.Barrier();
+		}
+	}
+	
 	// -----------------------------------
 	//	Close the file:
 	// -----------------------------------

@@ -102,15 +102,7 @@ void mcmp2D::updateLatticeBoltzmann()
     // ---------------------------------------
 
     MPI::COMM_WORLD.Barrier();
-	
-	// ---------------------------------------
-	// Update macros:
-	// ---------------------------------------
-	
-	bool exchangeGhostRho = true;
-	fA.macros(s,exchangeGhostRho);
-	fB.macros(s,exchangeGhostRho);
-	
+		
 	// ---------------------------------------
 	// Interfluid forces & common velocities:
 	// (Shan-Chen mcmp model)
@@ -119,11 +111,14 @@ void mcmp2D::updateLatticeBoltzmann()
 	calculateShanChenForces();
 		
 	// ---------------------------------------
-	// collide and streaming steps:
+	// Update LBM:
 	// ---------------------------------------
 
-	fA.collideStreamUpdate(s);
-	fB.collideStreamUpdate(s);
+	int xBC = 0; 
+	int yBC = 0; 
+	bool exchangeGhostRho = true;
+	fA.updateFluid_SC(s,xBC,yBC,exchangeGhostRho);
+	fB.updateFluid_SC(s,xBC,yBC,exchangeGhostRho);
 
 }
 
