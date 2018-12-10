@@ -33,10 +33,10 @@ IBcapsules2D::IBcapsules2D(const CommonParams& pin, const GetPot& input_params) 
 	ny = p.ny;
 	deli = ny + 2;
 	delj = 1;
-	iL = p.xOff;     // lower bound (integer) of rank's domain
-	iU = iL + nx;    // upper bound (integer) of rank's domain
-	xL = double(iL); // lower bound (double)  of rank's domain
-	xU = double(iU); // upper bound (double)  of rank's domain
+	iL = p.xOff + 1;  // lower bound (integer) of rank's domain
+	iU = iL + nx - 1; // upper bound (integer) of rank's domain
+	xL = double(iL);  // lower bound (double)  of rank's domain
+	xU = double(iU);  // upper bound (double)  of rank's domain
 	
 	// ---------------------------------------
 	// Set some data relating to the IBM:
@@ -232,30 +232,40 @@ void IBcapsules2D::interpolateVelocity(const LBfluid2D& fl)
 		vy[n] = 0.0;
 		
 		// -----------------------------------
-		// is node footprint outside domain?
-		// -----------------------------------		
-		
-		if (isMyNode(n) == false) continue;  // need this for parallel!!!!
-		
-		if (rank == 1) continue;  // parallel!!!
-		
-		// -----------------------------------
-		// loop over node's footprint:
+		// get nearest point (rounded down):
 		// -----------------------------------	
 				
-		int i0 = int(floor(x[n])) + 1;  // i-index nearest particle (rounded down)
-		int j0 = int(floor(y[n])) + 1;  // j-index nearest particle (rounded down)
-				
+		int i0 = int(floor(x[n])) + 1;
+		int j0 = int(floor(y[n])) + 1;
+		
+		// -----------------------------------
+		// does this node overlap with me?
+		// -----------------------------------
+		
+		if (isMyNode(i0) == false) continue;
+		
+		// -----------------------------------
+		// loop over footprint:
+		// -----------------------------------
+		
 		for (int i=i0; i<=i0+1; i++) {
+			
+			// test if this point is in my domain:
+			if (inMyDomain(i) == false) continue;
+			
+			// get local i-index:
+			int iloc = i - (iL - 1);
+			
+			// loop over j indices:
 			for (int j=j0; j<=j0+1; j++) {
-				int ndx = i*deli + j*delj;
+				int ndx = iloc*deli + j*delj;
 				double rx = x[n] - double(i-1);
 				double ry = y[n] - double(j-1);
 				double del = (1.0-abs(rx))*(1.0-abs(ry));
 				vx[n] += del*fl.getUStar(ndx);
-				vy[n] += del*fl.getVStar(ndx);								
+				vy[n] += del*fl.getVStar(ndx);
 			}
-		}
+		}	
 				
 	}
 		
@@ -336,23 +346,33 @@ void IBcapsules2D::extrapolateForce(LBfluid2D& fl)
 	for (int n=0; n<nnodes; n++) {
 				
 		// -----------------------------------
-		// is node footprint outside domain?
-		// -----------------------------------		
-		
-		if (isMyNode(n) == false) continue;
-		
-		if (rank == 1) continue;  // parallel!!!
-		
-		// -----------------------------------
-		// loop over node's footprint:
+		// get nearest point (rounded down):
 		// -----------------------------------	
 				
-		int i0 = int(floor(x[n])) + 1;  // i-index nearest particle (rounded down)
-		int j0 = int(floor(y[n])) + 1;  // j-index nearest particle (rounded down)
+		int i0 = int(floor(x[n])) + 1;
+		int j0 = int(floor(y[n])) + 1;
+		
+		// -----------------------------------
+		// does this node overlap with me?
+		// -----------------------------------
+		
+		if (isMyNode(i0) == false) continue;
+		
+		// -----------------------------------
+		// loop over footprint:
+		// -----------------------------------
 		
 		for (int i=i0; i<=i0+1; i++) {
+			
+			// test if this point is in domain:
+			if (inMyDomain(i) == false) continue;
+			
+			// get local i-index:
+			int iloc = i - (iL - 1);
+			
+			// loop over j indices:
 			for (int j=j0; j<=j0+1; j++) {
-				int ndx = i*deli + j*delj;
+				int ndx = iloc*deli + j*delj;
 				double rx = x[n] - double(i-1);
 				double ry = y[n] - double(j-1);
 				double del = (1.0-abs(rx))*(1.0-abs(ry));
@@ -395,8 +415,17 @@ bool IBcapsules2D::inMyDomain(int i)
 // Check to see if node's footprint overlaps with rank's domain:
 // -------------------------------------------------------------------------
 
-bool IBcapsules2D::isMyNode(int n)
-{
+bool IBcapsules2D::isMyNode(int i)
+{	
+	
+	if (i >= iL-1 && i <= iU) {   // need to add PBC's
+		return true;
+	}
+	else {
+		return false;
+	}		
+	
+	/*
 	if (x[n] >= xLh && x[n] <= xUh) {
 		return true;
 	}
@@ -410,6 +439,8 @@ bool IBcapsules2D::isMyNode(int n)
 	else {
 		return false;
 	}	
+	*/
+	
 }
 
 
