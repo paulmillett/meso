@@ -14,6 +14,8 @@
 # include "PFTypes/CHTernary.hpp"
 # include "PFTypes/TIPSphil.hpp"
 # include "PFTypes/TIPSbathPHIL.hpp"
+# include "PFTypes/SIPS.hpp"
+# include "PFTypes/SIPSternary.hpp"
 # include "PFTypes/OPFZoneTempFD.hpp"
 
 // -------------------------------------------------------------------------
@@ -43,7 +45,9 @@ PFBaseClass* PFBaseClass::PFFactory(const CommonParams& p,
     if (pf_type == "CHTernary") return new CHTernary(p,input_params);
     if (pf_type == "TIPSphil") return new TIPSphil(p,input_params);
     if (pf_type == "TIPSbathPHIL") return new TIPSbathPHIL(p,input_params);
-	if (pf_type == "OPFZoneTempFD") return new OPFZoneTempFD(p,input_params);
+    if (pf_type == "SIPS") return new SIPS(p,input_params);
+    if (pf_type == "SIPSternary") return new SIPSternary(p,input_params);
+	 if (pf_type == "OPFZoneTempFD") return new OPFZoneTempFD(p,input_params);
 
     // if input file doesn't have a correct type return a nullptr
     return NULL;

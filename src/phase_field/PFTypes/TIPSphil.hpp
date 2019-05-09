@@ -1,3 +1,15 @@
+/************************************************************
+ * 
+ * TIPSphil class 
+ *
+ * This class models binary phase separation via TIPS.
+ * Temperature is isotropically lowered linearly with time.
+ * Simulation time determines the quench rate, 
+ * i.e. longer simulations model a slow quench rate and 
+ * shorter simulations a faster  quench rate.
+ *
+ *
+************************************************************/
 
 # ifndef TIPSPHIL_H
 # define TIPSPHIL_H
@@ -13,11 +25,11 @@ private:
 
     const CommonParams& p;
     int current_step;
+    int mobStep;
     int nx,ny,nz;
     int deli,delj,delk;
     int nxyz;
-    int outAnalysisInterval;
-    int numAnalysisOutputs;
+    double dt;
     SfieldFD c;
     double co;
     double M;
@@ -28,13 +40,15 @@ private:
     double A;
     double Tinit;
     double Tbath;
+    double Tcrystal;
     double noiseStr;
     double nu;
     double gamma;
     double D0;
-    double cHeat;
+    double thermCond;
     double Mweight;
     double Mvolume;
+    bool bx,by,bz;
 public:
 
     TIPSphil(const CommonParams&, const GetPot&);

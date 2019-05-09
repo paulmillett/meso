@@ -1,3 +1,13 @@
+/************************************************************
+ * 
+ * TIPSbathPHIL class 
+ *
+ * This class models binary phase separation via TIPS
+ * with anisotropic quenching initiating at a surface
+ * (x = 0) held at a constant temperature (Tbath).
+ *
+ *
+************************************************************/
 
 # ifndef TIPSBATHPHIL_H
 # define TIPSBATHPHIL_H
@@ -13,12 +23,13 @@ private:
 
     const CommonParams& p;
     int current_step;
+    int mobStep;
     int nx,ny,nz;
     int deli,delj,delk;
     int nxyz;
-    int outAnalysisInterval;
-    int numAnalysisOutputs;
     SfieldFD c;
+    SfieldFD TempOut;
+    double dt;
     double co;
     double M;
     double N;
@@ -28,6 +39,7 @@ private:
     double A;
     double Tbath;
     double Tinit;
+    double Tcrystal;
     double noiseStr;
     double thermCond;
     double nu;
@@ -35,6 +47,8 @@ private:
     double D0;
     double Mweight;
     double Mvolume;
+    bool bx,by,bz;
+    bool writeTemp;
 public:
 
     TIPSbathPHIL(const CommonParams&, const GetPot&);
